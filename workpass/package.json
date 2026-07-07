@@ -1,0 +1,12 @@
+{
+  "name": "work-pass",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WORK PASS - AI人材マッチングツール（依存ゼロ・Node標準http＋内蔵SQLite）",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5"
+  }
+}

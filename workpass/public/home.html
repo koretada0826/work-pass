@@ -153,13 +153,36 @@ async function loadSeekerAI(cand){
   }catch(e){ el.innerHTML=`<div class="card-h"><span class="hi">✨</span><span class="ct">あなたのAIキャリア診断</span></div><p class="muted">読み込みに失敗しました。</p>`; }
 }
 function renderSeekerAI(a){
-  const el=document.getElementById('aiseeker'); const em=a.ever_match||{}, cf=a.company_fit||{};
+  const el=document.getElementById('aiseeker'); const em=a.ever_match||{}, cf=a.company_fit||{}, sa=a.self_analysis||{};
+  const hidden=(a.hidden_aptitudes||[]).map(h=>`<div style="padding:8px 0;border-bottom:1px solid #f0f2f6"><b>${escS(h.job)}</b><div class="note">${escS(h.reason)}</div></div>`).join('')||'<span class="muted">-</span>';
   el.innerHTML=`<div class="card-h"><span class="hi">✨</span><span class="ct">あなたのAIキャリア診断</span><span class="tagline" style="margin-left:auto">${escS(a.recommended_type||'')}</span></div>
     <p style="margin:0 0 14px">${escS(a.summary||'')}</p>
+
+    <div class="card" style="box-shadow:none;background:#f4f8ff;border-color:#dbe7ff;margin:0 0 14px">
+      <div class="fl">① 応募先（Everエフォート）との相性</div>
+      <div style="display:flex;align-items:baseline;gap:12px;margin:4px 0 6px"><div style="font-size:38px;font-weight:800;color:var(--brand);line-height:1">${Number.isFinite(Number(em.score))?Number(em.score):'-'}<small style="font-size:16px">%</small></div><div style="font-weight:700;color:var(--brand)">${escS(em.verdict||'')}</div></div>
+      <ul style="margin:0;padding-left:18px">${(em.reasons||[]).map(x=>`<li>${escS(x)}</li>`).join('')}</ul>
+    </div>
+
+    <div class="card" style="box-shadow:none;background:#fbf7fa;border-color:#f0dbe6;margin:0 0 14px">
+      <div class="fl" style="color:#c44d76">② あなたの自己分析（本当にやりたいこと）</div>
+      <p style="margin:6px 0 8px;font-weight:600">${escS(sa.true_motivation||'')}</p>
+      <div class="grid2">
+        <div><div class="fl">大切にしている価値観</div><div style="margin-top:6px">${chipsS(sa.core_values)}</div></div>
+        <div><div class="fl">力を発揮しやすい働き方</div><div style="margin-top:4px">${escS(sa.work_style||'')}</div></div>
+      </div>
+      ${sa.encouragement?`<p style="margin:10px 0 0;color:#c44d76;font-weight:600">💬 ${escS(sa.encouragement)}</p>`:''}
+    </div>
+
+    <div class="card" style="box-shadow:none;background:#f6fdf8;border-color:#bfe6cb;margin:0 0 14px">
+      <div class="fl" style="color:var(--good)">③ あなたには、こんな仕事の適性もあります</div>
+      <div style="margin:6px 0"><div class="note">向いている職種</div><div style="margin-top:6px">${chipsS(a.fit_jobs)}</div></div>
+      <div style="margin-top:10px"><div class="note" style="font-weight:700">意外な適性（気づいていないかも）</div>${hidden}</div>
+    </div>
+
     <div class="grid2" style="align-items:start">
       <div><div class="fl">あなたの強み</div>${listS(a.strengths)}</div>
-      <div><div class="fl">向いている職種</div><div style="margin-top:6px">${chipsS(a.fit_jobs)}</div>
-           <div class="fl" style="margin-top:10px">向いている業界</div><div style="margin-top:6px">${chipsS(a.fit_industries)}</div></div>
+      <div><div class="fl">向いている業界</div><div style="margin-top:6px">${chipsS(a.fit_industries)}</div></div>
     </div>
     <hr class="hr">
     <div class="card-h" style="margin-bottom:6px"><span class="ct" style="font-size:15px">あなたに向いている企業タイプ</span><span class="tagline" style="margin-left:auto">${escS(cf.summary_label||'')}</span></div>
@@ -168,10 +191,7 @@ function renderSeekerAI(a){
       <div><div class="fl" style="color:var(--good)">◎ あなたが輝ける環境</div>${listS(cf.best_environments)}</div>
       <div><div class="fl" style="color:#d97706">△ 気をつけたい環境</div>${listS(cf.avoid_environments)}</div>
     </div>
-    <div style="margin-top:10px"><div class="fl">こんな企業がおすすめ</div><div style="margin-top:6px">${chipsS(a.recommended_company_examples)}</div></div>
-    <hr class="hr">
-    <div class="fl">応募先（Everエフォート）との相性</div>
-    <div style="display:flex;align-items:baseline;gap:12px;margin:4px 0 6px"><div style="font-size:34px;font-weight:800;color:var(--brand);line-height:1">${em.score??'-'}<small style="font-size:16px">%</small></div><div style="font-weight:700;color:var(--brand)">${escS(em.verdict||'')}</div></div>`;
+    <div style="margin-top:10px"><div class="fl">こんな企業がおすすめ</div><div style="margin-top:6px">${chipsS(a.recommended_company_examples)}</div></div>`;
 }
 
 renderLayout({ role:'seeker', active:'home', title:'ホーム' });

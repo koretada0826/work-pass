@@ -53,7 +53,7 @@ Promise.all([
       <td>${esc(r.career_job)||'<span class="muted">-</span>'}</td>
       <td>${r.apt_avg!=null?`<span class="stars">${stars(r.apt_avg/20)}</span> <b>${(r.apt_avg/20).toFixed(1)}</b>`:'<span class="muted">未診断</span>'}</td>
       <td>${r.pref_annual_income?r.pref_annual_income+'万円':'<span class="muted">-</span>'}</td>
-      <td>${r.tests_done||0}<span class="muted">/5</span></td>
+      <td>${r.tests_done||0}<span class="muted">/6</span></td>
       <td>${badge(r.status)}</td>
     </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;padding:30px" class="muted">まだ登録がありません</td></tr>`;
   const listCard = `

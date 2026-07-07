@@ -49,6 +49,7 @@ const ICONS={
   chat:['#f0eaff','#8b5cf6','<path d="M4 5h16v11H9l-4 4z"/><path d="M8 10h8M8 13h5"/>'],
   user:['#fdf1de','#e39320','<circle cx="12" cy="8" r="4"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/>'],
   bag:['#e4f5f2','#2fa898','<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/>'],
+  bulb:['#fdeaef','#e0607a','<path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 00-4-10z"/>'],
 };
 let TESTS=[], done={};
 
@@ -64,7 +65,7 @@ function render(){
     const ic=ICONS[t.icon]||ICONS.book; const isDone=!!done[t.key];
     return `<div class="tcard ${isDone?'done':''}" onclick="location.href='/test.html?id=${id}&key=${t.key}'">
       <div class="badge-n">${i+1}</div>
-      ${isDone?`<div class="doneflag">✓ 完了 ${done[t.key].score}点</div>`:''}
+      ${isDone?`<div class="doneflag">✓ 完了${done[t.key].score!=null?' '+done[t.key].score+'点':''}</div>`:''}
       <div class="tico" style="background:${ic[0]}"><svg viewBox="0 0 24 24" width="34" fill="none" stroke="${ic[1]}" stroke-width="1.7">${ic[2]}</svg></div>
       <div class="tt">${t.label}</div><div class="ts">${t.sub}</div>
       <div class="tm"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg> 約${t.minutes}分</div>

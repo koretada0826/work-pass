@@ -99,6 +99,19 @@ function renderAI(a){
       <ul style="margin:0;padding-left:18px">${(em.reasons||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
     </div>
 
+    <div class="grid2" style="margin:0 0 14px;align-items:stretch">
+      <div class="card" style="box-shadow:none;background:#fbf7fa;border-color:#f0dbe6;margin:0">
+        <div class="fl" style="color:#c44d76">自己分析（本人の本当にやりたいこと）</div>
+        <p style="margin:6px 0 8px;font-weight:600">${esc((a.self_analysis||{}).true_motivation||'')}</p>
+        <div class="note">大切にしている価値観</div><div style="margin:4px 0">${chips((a.self_analysis||{}).core_values)}</div>
+        <div class="note">力を発揮しやすい働き方：${esc((a.self_analysis||{}).work_style||'')}</div>
+      </div>
+      <div class="card" style="box-shadow:none;background:#f6fdf8;border-color:#bfe6cb;margin:0">
+        <div class="fl" style="color:var(--good)">意外な適性（本人が気づいていないかも）</div>
+        ${((a.hidden_aptitudes||[]).map(h=>`<div style="padding:6px 0;border-bottom:1px solid #eef2f6"><b>${esc(h.job)}</b><div class="note">${esc(h.reason)}</div></div>`).join(''))||'<span class="muted">-</span>'}
+      </div>
+    </div>
+
     <div class="card" style="box-shadow:none;background:#fafbfe;margin:0 0 14px">
       <div class="card-h" style="margin-bottom:8px"><span class="ct" style="font-size:15px">向いている企業タイプ（多軸診断）</span>
         <span class="tagline" style="margin-left:auto">${esc(cf.summary_label||'')}</span></div>

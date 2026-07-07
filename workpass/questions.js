@@ -66,6 +66,18 @@ const TESTS = [
       { q:'名刺交換で自分が目下の立場のとき、最も適切な渡し方はどれか。', choices:['相手より高い位置で渡す','相手より低い位置で両手で渡す','片手で素早く渡す','相手が出すまで待つ'], correct:1 },
     ],
   },
+  {
+    key:'selfreflect', label:'キャリア自己分析', sub:'本当にやりたいことを言葉にする',
+    icon:'bulb', color:'#e0607a', minutes:7, type:'freetext',
+    questions:[
+      { q:'これまでで一番「夢中になった」「時間を忘れた」経験は何ですか？ その何が楽しかったですか？', ph:'仕事・部活・趣味など何でもOK' },
+      { q:'人から「ありがとう」と言われて一番うれしかったのは、どんな時ですか？', ph:'' },
+      { q:'もしお金の心配がいらないとしたら、どんな仕事や活動をしてみたいですか？', ph:'' },
+      { q:'逆に「これだけは絶対にやりたくない」働き方・仕事は何ですか？', ph:'' },
+      { q:'尊敬する人・憧れる人は誰ですか？ その人のどこに惹かれますか？', ph:'' },
+      { q:'仕事で一番大事にしたいことを、あなた自身の言葉で教えてください。', ph:'お金/成長/人間関係/自由/社会貢献 など' },
+    ],
+  },
 ];
 
 const BY_KEY = Object.fromEntries(TESTS.map(t=>[t.key,t]));
@@ -81,6 +93,7 @@ function testForClient(key) {
   if (t.type==='mc') base.questions = t.questions.map(q=>({ q:q.q, choices:q.choices }));
   else if (t.type==='likert') { base.dim=t.dim; base.items=t.items; }
   else if (t.type==='likert-multi') base.dims = t.dims.map(d=>({ key:d.key, label:d.label, items:d.items }));
+  else if (t.type==='freetext') base.questions = t.questions.map(q=>({ q:q.q, ph:q.ph||'' }));
   return base;
 }
 // 採点。戻り値 { score:0-100, detail:{...} , values?:{val_*:0-5} }
@@ -108,6 +121,11 @@ function scoreTest(key, answers) {
     });
     const top=Object.entries(dimScores).sort((a,b)=>b[1]-a[1])[0];
     return { score:Math.round(total/t.dims.length), detail:{ dims:dimScores, top:top?top[0]:null }, values };
+  }
+  if (t.type==='freetext') {
+    const qa=t.questions.map((q,i)=>({ q:q.q, a:String((answers&&answers[i])||'').trim() }));
+    const answered=qa.filter(x=>x.a).length;
+    return { score:null, detail:{ qa, answered, total:t.questions.length } };
   }
   return null;
 }

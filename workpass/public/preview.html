@@ -27,6 +27,9 @@ fetch('/api/tests').then(r=>r.json()).then(async tests=>{
     } else if(d.type==='likert'){
       body = `<p class="note">各設問に5段階（${scale.map(s=>s[0]+'='+s[1]).join(' / ')}）で回答します。</p>`+
         d.items.map((it,qi)=>`<div class="q" style="box-shadow:none"><div>${qi+1}. ${esc(it)}</div></div>`).join('');
+    } else if(d.type==='freetext'){
+      body = `<p class="note">自由記述で回答します（本人の本音・やりたいことを引き出す質問）。</p>`+
+        d.questions.map((qq,qi)=>`<div class="q" style="box-shadow:none"><div class="qt">Q${qi+1}. ${esc(qq.q)}</div></div>`).join('');
     } else {
       body = `<p class="note">価値観・行動特性を5段階で測定します。</p>`+
         d.dims.map(dim=>`<div class="q" style="box-shadow:none"><div class="qt">${esc(dim.label)}</div>${dim.items.map(it=>`<div>・ ${esc(it)}</div>`).join('')}</div>`).join('');

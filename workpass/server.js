@@ -152,7 +152,9 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-// ローカル専用：ループバックのみにバインド（LAN上の他端末からPIIを見せない）
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`\n  WORK PASS 人材DB 起動 →  http://localhost:${PORT}\n  （127.0.0.1のみ・停止： Ctrl + C ）\n`);
+// バインド先：既定はループバックのみ（ローカルでPIIを外に見せない）。
+// 本番ホスティングでは HOST=0.0.0.0 を環境変数で指定して外部公開する。
+const HOST = process.env.HOST || '127.0.0.1';
+server.listen(PORT, HOST, () => {
+  console.log(`\n  WORK PASS 人材DB 起動 →  http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}\n  （HOST=${HOST}・停止： Ctrl + C ）\n`);
 });
