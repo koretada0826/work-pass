@@ -1,11 +1,13 @@
 # --- 機密情報（絶対にコミットしない）---
+workpass/.env
 .env
 *.key
 
 # --- ローカルDB（求職者の個人情報を含む）---
+workpass/*.db
+workpass/*.db-shm
+workpass/*.db-wal
 *.db
-*.db-shm
-*.db-wal
 
 # --- OS / エディタ / 依存 ---
 .DS_Store
