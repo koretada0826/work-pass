@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AIマッチング - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="/layout.js"></script>
+<script>
+renderLayout({ role:'admin', active:'matching', title:'AIマッチング' });
+const esc = s => (s==null||s==='')?'':String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+const num = v => Number.isFinite(Number(v)) ? Number(v) : '-';
+const preJob = new URLSearchParams(location.search).get('job');
+let JOBS=[];
+
+view();
+async function view(){
+  const [jobs, ai] = await Promise.all([ fetch('/api/jobs').then(r=>r.json()), fetch('/api/ai/status').then(r=>r.json()) ]);
+  JOBS=jobs;
+  const el=document.getElementById('content');
+  if(!ai.enabled){
+    el.innerHTML=`<div class="card"><div class="card-h"><span class="hi">✨</span><span class="ct">AIマッチング</span></div>
+      <p style="color:#d14343">GeminiのAPIキーが未設定のため、AIマッチングは実行できません。</p>
+      <p class="note">「設定」画面の手順で <b>workpass/.env</b> に GEMINI_API_KEY を設定し、サーバーを再起動してください。</p></div>`;
+    return;
+  }
+  if(!jobs.length){
+    el.innerHTML=`<div class="card"><div class="card-h"><span class="ct">AIマッチング</span></div>
+      <p class="muted">まだ求人がありません。<a href="/jobs.html">「企業・求人の登録」</a>から求人を登録すると、求職者との相性をAIが分析します。</p></div>`;
+    return;
+  }
+  el.innerHTML=`
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-h"><span class="ct">求人を選んでマッチング</span></div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+        <select id="jobsel" style="max-width:420px">${jobs.map(j=>`<option value="${j.id}">${esc(j.title)}（${esc(j.company_name)}）</option>`).join('')}</select>
+        <button class="btn btn-primary" id="run">この求人でAIマッチング ✨</button>
+        <span class="note">求人・求職者の自由記述も読み取って相性を判定します（10〜20秒）。</span>
+      </div>
+    </div>
+    <div id="result"></div>`;
+  if(preJob) document.getElementById('jobsel').value=preJob;
+  document.getElementById('run').addEventListener('click', run);
+}
+
+async function run(){
+  const jid=document.getElementById('jobsel').value;
+  const btn=document.getElementById('run'); btn.disabled=true; btn.textContent='AI分析中…';
+  const box=document.getElementById('result');
+  box.innerHTML='<div class="card"><p class="muted">AIが求職者一人ひとりとの相性を分析しています…</p></div>';
+  try{
+    const r=await fetch('/api/jobs/'+jid+'/match',{method:'POST'});
+    const j=await r.json();
+    btn.disabled=false; btn.textContent='この求人でAIマッチング ✨';
+    if(!r.ok){ box.innerHTML=`<div class="card"><p style="color:#d14343">${esc(j.message||'分析に失敗しました')}</p></div>`; return; }
+    if(!j.matches.length){ box.innerHTML='<div class="card"><p class="muted">対象の求職者がいません。</p></div>'; return; }
+    box.innerHTML = j.matches.map(m=>{
+      const c=j.candidates[m.candidate_id]||{}; const ax=m.axis||{};
+      const bar=(l,v)=>`<div class="barrow" style="grid-template-columns:88px 1fr 34px"><div class="bl">${l}</div><div class="track"><i style="width:${v||0}%"></i></div><div class="bv">${v??'-'}</div></div>`;
+      return `<div class="card" style="margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+          <div style="text-align:center;min-width:90px">
+            <div style="font-size:34px;font-weight:800;color:var(--brand);line-height:1">${num(m.score)}<small style="font-size:16px">%</small></div>
+            <div class="note">マッチ度</div></div>
+          <div style="flex:1;min-width:220px">
+            <div style="font-weight:800;font-size:16px">${esc(c.name||('ID:'+m.candidate_id))} <span class="note">${esc(c.career_job||'')}</span>
+              <a class="more" href="/candidate.html?id=${m.candidate_id}" style="margin-left:8px">詳細 ›</a></div>
+            <div style="font-weight:700;color:var(--brand);margin-top:2px">${esc(m.verdict||'')}</div>
+            <ul style="margin:8px 0 0;padding-left:18px">${(m.reasons||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+          </div>
+          <div style="min-width:240px">
+            <div class="bars">${bar('条件',ax['条件'])}${bar('スキル経験',ax['スキル経験'])}${bar('志向キャリア',ax['志向キャリア'])}${bar('価値観性格',ax['価値観性格'])}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){ btn.disabled=false; btn.textContent='この求人でAIマッチング ✨'; box.innerHTML='<div class="card"><p style="color:#d14343">通信エラー</p></div>'; }
+}
+</script>
+</body>
+</html>

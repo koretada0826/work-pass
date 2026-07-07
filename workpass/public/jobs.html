@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>企業・求人の登録 - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="/layout.js"></script>
+<script>
+renderLayout({ role:'admin', active:'jobs', title:'企業・求人の登録' });
+const esc = s => (s==null||s==='')?'':String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+
+const PREF=['北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県','新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県','奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県','熊本県','大分県','宮崎県','鹿児島県','沖縄県'];
+const INDUSTRIES=['IT・SaaS','人材・派遣','不動産','金融・保険','メーカー','商社','小売','飲食','医療・介護','広告・マーケ','建設','物流','コンサル','その他'];
+const SIZES=['1〜10名','11〜50名','51〜100名','101〜300名','301〜1000名','1000名以上'];
+const CATS=['営業（新規開拓）','インサイドセールス','フィールドセールス','カスタマーサクセス','マーケティング','企画','事務・アシスタント','人事・採用','接客・販売','エンジニア','その他'];
+const OVERTIME=['ほぼなし','少なめ','普通','多め'];
+const EXPERIENCE=['未経験OK','1年以上','3年以上','5年以上','マネジメント経験あり'];
+const TAGS=['成長中','ベンチャー','安定','大手','若手活躍','風通しが良い','リモート充実','研修充実','実力主義'];
+const HOLIDAYS=['完全週休2日','週休2日','土日祝休み','シフト制','年間休日120日以上'];
+const BENEFITS=['社会保険完備','交通費支給','賞与あり','昇給あり','住宅手当','資格手当','退職金','服装自由','副業OK'];
+const APT=[['sales','営業適性'],['hospitality','接客適性'],['admin','事務適性'],['management','マネジメント適性'],['communication','コミュニケーション']];
+const PERSONA=['積極性','協調性','コミュニケーション力','主体性','リーダーシップ'];
+const VALUES=['成長重視','安定重視','人間関係重視','ワークライフバランス重視'];
+const opt=(a)=>a.map(v=>`<option>${v}</option>`).join('');
+const chips=(id,list)=>`<div class="days" id="${id}">${list.map(v=>`<label class="chipbtn" data-val="${v}">${v}</label>`).join('')}</div>`;
+let timeOpts='<option value="">--:--</option>'; for(let m=0;m<=24*60;m+=30){const hh=String(Math.floor(m/60)).padStart(2,'0'),mm=String(m%60).padStart(2,'0');timeOpts+=`<option value="${hh}:${mm}">${hh}:${mm}</option>`;}
+
+function view(){
+  document.getElementById('content').innerHTML = `
+  <div class="grid g-2">
+    <div>
+      <div class="card">
+        <div class="card-h"><span class="ct">求人を登録</span>
+          <button class="btn btn-ghost sm" style="margin-left:auto" onclick="fillSample()">Everの求人例を入れる</button></div>
+        <form id="jform">
+
+          <div class="secttl">① 企業情報</div>
+          <div class="grid2">
+            <div class="field"><label class="fl">企業名 <span class="req">必須</span></label><input name="company_name" value="株式会社Everエフォート" required></div>
+            <div class="field"><label class="fl">業種</label><select name="industry"><option value="">選択</option>${opt(INDUSTRIES)}</select></div>
+            <div class="field"><label class="fl">従業員規模</label><select name="company_size"><option value="">選択</option>${opt(SIZES)}</select></div>
+          </div>
+          <div class="field"><label class="fl">会社の特徴（あてはまるものを選択）</label>${chips('t_tags',TAGS)}</div>
+
+          <div class="secttl" style="margin-top:18px">② 募集ポジション</div>
+          <div class="grid2">
+            <div class="field"><label class="fl">求人職種（具体名） <span class="req">必須</span></label><input name="title" placeholder="例）インサイドセールス" required></div>
+            <div class="field"><label class="fl">職種カテゴリ</label><select name="job_category"><option value="">選択</option>${opt(CATS)}</select></div>
+          </div>
+
+          <div class="secttl" style="margin-top:18px">③ 条件</div>
+          <div class="grid3">
+            <div class="field"><label class="fl">雇用形態</label><select name="employment_type"><option value="">選択</option><option>正社員</option><option>契約社員</option><option>アルバイト</option><option>業務委託</option></select></div>
+            <div class="field"><label class="fl">年収 下限（万円）</label><input name="salary_min" type="number" min="0" max="100000" placeholder="例）400"></div>
+            <div class="field"><label class="fl">年収 上限（万円）</label><input name="salary_max" type="number" min="0" max="100000" placeholder="例）520"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label class="fl">勤務地</label><select name="location"><option value="">選択</option>${opt(PREF)}</select></div>
+            <div class="field"><label class="fl">リモート</label><select name="remote"><option value="">選択</option><option>フルリモート可</option><option>リモート併用可</option><option>出社</option></select></div>
+          </div>
+          <div class="grid3">
+            <div class="field"><label class="fl">勤務時間</label><div style="display:flex;align-items:center;gap:6px"><select id="t_start" style="flex:1">${timeOpts}</select><span class="muted">〜</span><select id="t_end" style="flex:1">${timeOpts}</select></div></div>
+            <div class="field"><label class="fl">残業</label><select name="overtime"><option value="">選択</option>${opt(OVERTIME)}</select></div>
+            <div class="field"><label class="fl">必要経験</label><select name="required_experience"><option value="">選択</option>${opt(EXPERIENCE)}</select></div>
+          </div>
+          <div class="field"><label class="fl">休日</label>${chips('t_holidays',HOLIDAYS)}</div>
+          <div class="field"><label class="fl">福利厚生</label>${chips('t_benefits',BENEFITS)}</div>
+          <div class="field"><label class="fl">必須資格（任意）</label><input name="required_qualifications" placeholder="例）普通自動車免許（無ければ空欄）"></div>
+
+          <div class="secttl" style="margin-top:18px">④ 求める人物像・適性 <span class="muted" style="font-weight:400;font-size:12px">（任意・相性マッチングに使われます）</span></div>
+          <div class="grid3" id="aptgrid"></div>
+          <div class="grid3" id="personagrid" style="margin-top:6px"></div>
+          <div class="field" style="margin-top:6px"><label class="fl">重視する価値観</label>${chips('t_values',VALUES)}</div>
+
+          <div class="secttl" style="margin-top:18px">⑤ 仕事内容・求める人材（ご記入ください）</div>
+          <div class="field"><label class="fl">仕事内容 <span class="req">必須</span></label>
+            <textarea name="description" style="min-height:120px" required placeholder="どんな仕事か、1日の流れ、やりがい、身につくスキルなどをご記入ください。この文章もAIが読み取ります。"></textarea></div>
+          <div class="field"><label class="fl">求める人材・必須条件 <span class="req">必須</span></label>
+            <textarea name="requirements" style="min-height:100px" required placeholder="必須スキル・経験、歓迎する人物像、価値観など。例）目標達成にコミットできる方、素直に学べる方"></textarea></div>
+
+          <button type="submit" class="btn btn-primary">この求人を登録する</button>
+        </form>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-h"><span class="ct">登録済みの求人</span></div>
+        <div id="joblist"><p class="muted">読み込み中…</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>`;
+
+  document.getElementById('aptgrid').innerHTML = APT.map(([k,l])=>
+    `<div class="field"><label class="fl">${l}</label><select data-apt="${k}"><option value="">不問</option><option value="60">60点以上</option><option value="70">70点以上</option><option value="80">80点以上</option><option value="90">90点以上</option></select></div>`).join('');
+  document.getElementById('personagrid').innerHTML = PERSONA.map(l=>
+    `<div class="field"><label class="fl">${l}</label><select data-persona="${l}"><option value="">不問</option>${[1,2,3,4,5].map(n=>`<option value="${n}">★${n}以上</option>`).join('')}</select></div>`).join('');
+  document.querySelectorAll('.chipbtn').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
+
+  document.getElementById('jform').addEventListener('submit', onSubmit);
+  loadJobs();
+}
+const getChips = id => [...document.querySelectorAll('#'+id+' .chipbtn.on')].map(e=>e.dataset.val);
+
+async function onSubmit(e){
+  e.preventDefault();
+  const btn=e.target.querySelector('button[type=submit]'); if(btn.disabled) return; btn.disabled=true;
+  const fd=new FormData(e.target); const data={};
+  for(const [k,v] of fd.entries()) data[k]= v===''? null : v;
+  ['salary_min','salary_max'].forEach(k=>{ if(data[k]!=null) data[k]=Number(data[k]); });
+  const st=document.getElementById('t_start').value, en=document.getElementById('t_end').value;
+  data.work_time = (st&&en) ? `${st}〜${en}` : null;
+  data.company_tags = JSON.stringify(getChips('t_tags'));
+  data.holidays = JSON.stringify(getChips('t_holidays'));
+  data.benefits = JSON.stringify(getChips('t_benefits'));
+  const apt={}; APT.forEach(([k,l])=>{const s=document.querySelector(`[data-apt="${k}"]`); if(s&&s.value) apt[l]=s.value+'点以上';});
+  data.req_aptitude = JSON.stringify(apt);
+  const persona={}; PERSONA.forEach(l=>{const s=document.querySelector(`[data-persona="${l}"]`); if(s&&s.value) persona[l]='★'+s.value+'以上';});
+  data.req_persona = JSON.stringify(persona);
+  const rv={}; getChips('t_values').forEach(v=>rv[v]='重視'); data.req_values = JSON.stringify(rv);
+  try{
+    const r=await fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+    const j=await r.json(); if(!r.ok) throw new Error(j.error||'');
+    const t=document.getElementById('toast'); t.textContent='求人を登録しました'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1600);
+    document.getElementById('jform').reset(); document.querySelectorAll('.chipbtn').forEach(c=>c.classList.remove('on'));
+    document.querySelector('[name=company_name]').value='株式会社Everエフォート';
+    loadJobs();
+  }catch(err){ const t=document.getElementById('toast'); t.textContent='登録に失敗しました（'+(err.message||'')+'）'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+  btn.disabled=false;
+}
+function fillSample(){
+  const f=document.getElementById('jform');
+  f.company_name.value='株式会社Everエフォート'; f.industry.value='人材・派遣'; f.company_size.value='51〜100名';
+  f.title.value='インサイドセールス'; f.job_category.value='インサイドセールス';
+  f.employment_type.value='正社員'; f.salary_min.value=360; f.salary_max.value=520;
+  f.location.value='東京都'; f.remote.value='リモート併用可'; f.overtime.value='少なめ'; f.required_experience.value='未経験OK';
+  document.getElementById('t_start').value='09:00'; document.getElementById('t_end').value='18:00';
+  const setChips=(id,vals)=>document.querySelectorAll('#'+id+' .chipbtn').forEach(c=>c.classList.toggle('on', vals.includes(c.dataset.val)));
+  setChips('t_tags',['成長中','ベンチャー','若手活躍','研修充実']);
+  setChips('t_holidays',['完全週休2日','土日祝休み']);
+  setChips('t_benefits',['社会保険完備','交通費支給','賞与あり','昇給あり']);
+  setChips('t_values',['成長重視']);
+  const setSel=(sel,val)=>{const s=document.querySelector(sel); if(s) s.value=val;};
+  setSel('[data-apt="sales"]','70'); setSel('[data-apt="communication"]','70');
+  setSel('[data-persona="積極性"]','4'); setSel('[data-persona="主体性"]','4');
+  f.description.value='反響のあったお客様へ電話やオンラインで自社サービスをご提案する仕事です。飛び込みは少なく、トークスクリプトや研修が整っており未経験からでも数字を出せます。成果は給与に反映され、リーダー・マネージャーへのキャリアも早いです。';
+  f.requirements.value='目標に向けて素直に努力できる方、人と話すのが苦にならない方を歓迎します。営業未経験OK。将来マネジメントや事業づくりに挑戦したい方は特に活躍できます。';
+}
+async function loadJobs(){
+  const jobs = await fetch('/api/jobs').then(r=>r.json());
+  const el=document.getElementById('joblist');
+  if(!jobs.length){ el.innerHTML='<p class="muted">まだ求人がありません。左のフォームから登録してください。</p>'; return; }
+  el.innerHTML = jobs.map(j=>`
+    <div style="padding:12px 0;border-bottom:1px solid #f0f2f6">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="flex:1"><div style="font-weight:800">${esc(j.title)}</div><div class="note">${esc(j.company_name)}${j.job_category?'・'+esc(j.job_category):''}</div></div>
+        <a class="btn btn-outline sm" href="/matching.html?job=${j.id}">この求人でマッチング</a>
+      </div>
+      <div class="note" style="margin-top:4px">${j.salary_min||'-'}〜${j.salary_max||'-'}万円 ／ ${esc(j.location)||'-'} ／ ${esc(j.remote)||'-'}</div>
+    </div>`).join('');
+}
+view();
+</script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>適性診断・テスト - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="wiz"></div>
+<div class="hubwrap">
+  <div class="h">
+    <h1>適性診断・テストをはじめましょう</h1>
+    <p class="lead">あなたの強みや特性を多角的に分析することで、より相性の良い求人や企業をレコメンドします。すべての診断・テストを順番にご受験ください。</p>
+  </div>
+
+  <div class="infobar">
+    <div class="col"><div class="ci"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+      <div><div class="t">所要時間：約15〜20分</div><div class="d">途中保存はできません。</div></div></div>
+    <div class="col"><div class="ci"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h12M8 12h12M8 18h12M4 6h0M4 12h0M4 18h0"/></svg></div>
+      <div><div class="t">5つの診断・テストを順番に実施します</div><div class="d">すべて完了すると次のステップへ進めます。</div></div></div>
+  </div>
+
+  <div class="testgrid" id="grid"></div>
+
+  <div class="meritbar">
+    <div class="mh">診断を受けると、<br>こんなメリットがあります</div>
+    <div class="mi"><div class="mc"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 3a5 5 0 015 5c0 2-1 3-1 5H8c0-2-1-3-1-5a5 5 0 015-5z"/><path d="M9 20h6"/></svg></div>
+      <div><div class="mt">AIマッチング精度が向上</div><div class="md">あなたの特性を正確に把握</div></div></div>
+    <div class="mi"><div class="mc"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 3l2.7 6.3L21 10l-5 4.3L17.5 21 12 17.5 6.5 21 8 14.3 3 10l6.3-.7z"/></svg></div>
+      <div><div class="mt">あなたに合う求人を提案</div><div class="md">相性の良い企業と出会える</div></div></div>
+    <div class="mi"><div class="mc"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="#fff" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+      <div><div class="mt">結果はマイページで</div><div class="md">いつでも確認可能</div></div></div>
+  </div>
+
+  <div class="hubcta">
+    <button class="btn btn-primary lg" id="start" style="min-width:280px">診断をはじめる　›</button>
+    <a class="btn btn-ghost lg" href="#" id="skip">あとで実施する</a>
+  </div>
+  <div class="privacy">🔒 ご入力いただいた情報は、診断結果の分析およびマッチング・求人提案の目的で利用します。</div>
+</div>
+<script src="/layout.js"></script>
+<script>
+document.getElementById('wiz').innerHTML = wizHeader(2);
+const id = new URLSearchParams(location.search).get('id');
+const ICONS={
+  book:['#e8eeff','#5b6ef5','<path d="M4 5a2 2 0 012-2h5v16H6a2 2 0 00-2 2zM20 5a2 2 0 00-2-2h-5v16h5a2 2 0 012 2z"/>'],
+  target:['#e9f7ec','#3ea765','<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3M22 12h-3"/>'],
+  chat:['#f0eaff','#8b5cf6','<path d="M4 5h16v11H9l-4 4z"/><path d="M8 10h8M8 13h5"/>'],
+  user:['#fdf1de','#e39320','<circle cx="12" cy="8" r="4"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/>'],
+  bag:['#e4f5f2','#2fa898','<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/>'],
+};
+let TESTS=[], done={};
+
+Promise.all([
+  fetch('/api/tests').then(r=>r.json()),
+  id?fetch('/api/candidates/'+id).then(r=>r.json()):Promise.resolve({tests:{}})
+]).then(([tests, cand])=>{
+  TESTS=tests; done = (cand&&cand.tests)||{};
+  render();
+});
+function render(){
+  document.getElementById('grid').innerHTML = TESTS.map((t,i)=>{
+    const ic=ICONS[t.icon]||ICONS.book; const isDone=!!done[t.key];
+    return `<div class="tcard ${isDone?'done':''}" onclick="location.href='/test.html?id=${id}&key=${t.key}'">
+      <div class="badge-n">${i+1}</div>
+      ${isDone?`<div class="doneflag">✓ 完了 ${done[t.key].score}点</div>`:''}
+      <div class="tico" style="background:${ic[0]}"><svg viewBox="0 0 24 24" width="34" fill="none" stroke="${ic[1]}" stroke-width="1.7">${ic[2]}</svg></div>
+      <div class="tt">${t.label}</div><div class="ts">${t.sub}</div>
+      <div class="tm"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg> 約${t.minutes}分</div>
+    </div>`;
+  }).join('');
+  const allDone = TESTS.length && TESTS.every(t=>done[t.key]);
+  const start=document.getElementById('start');
+  const next = TESTS.find(t=>!done[t.key]);
+  if(allDone){ start.textContent='希望条件の入力へ進む　›'; start.onclick=()=>location.href='/conditions.html?id='+id; }
+  else { start.textContent = next && Object.keys(done).length ? 'つづきから受験する　›' : '診断をはじめる　›';
+    start.onclick=()=>location.href='/test.html?id='+id+'&key='+(next?next.key:TESTS[0].key); }
+  document.getElementById('skip').href='/conditions.html?id='+id;
+}
+</script>
+</body>
+</html>

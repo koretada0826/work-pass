@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>入力内容の確認 - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="wiz"></div>
+<div class="obwrap">
+  <div style="text-align:center"><h1 style="font-size:28px;margin:8px 0">入力内容のご確認</h1>
+    <p class="lead">内容に間違いがなければ「この内容で登録する」を押してください。</p></div>
+  <div id="body"><div class="card">読み込み中…</div></div>
+  <div style="display:flex;gap:12px;justify-content:space-between;margin-top:8px">
+    <a class="btn btn-ghost" id="back">← 戻る</a>
+    <button class="btn btn-primary" id="finish">この内容で登録する ✓</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="/layout.js"></script>
+<script>
+document.getElementById('wiz').innerHTML = wizHeader(4);
+const id=new URLSearchParams(location.search).get('id');
+document.getElementById('back').href='/conditions.html?id='+id;
+const esc=s=>(s==null||s==='')?'<span class="muted">未入力</span>':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const days=j=>{try{const a=JSON.parse(j||'[]');return a.length?a.join('・'):null}catch{return j}};
+const kv=(k,v)=>`<div class="k">${k}</div><div>${esc(v)}</div>`;
+
+fetch('/api/candidates/'+id).then(r=>r.json()).then(c=>{
+  const t=c.tests||{};
+  const testLabels={general:'一般常識テスト',sales:'営業適性診断',communication:'コミュニケーション診断',personality:'性格診断',manners:'ビジネスマナー診断'};
+  const testHtml=Object.keys(testLabels).map(k=>`<div class="barrow"><div class="bl">${testLabels[k]}</div><div class="track"><i style="width:${t[k]?t[k].score:0}%"></i></div><div class="bv">${t[k]?t[k].score:'-'}</div></div>`).join('');
+  const hist=(c.work_histories||[]).map(h=>`<div>${esc(h.industry)} / ${esc(h.job_type)}（${esc(h.years)}年）</div>`).join('')||'<span class="muted">未入力</span>';
+  document.getElementById('body').innerHTML=`
+    <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">基本情報</span></div>
+      <div class="kv">${kv('氏名',c.name)}${kv('年齢',c.age?c.age+'歳':null)}${kv('最寄駅',c.nearest_station)}${kv('通勤可能範囲',c.commute_range?c.commute_range+'分':null)}${kv('連絡先',c.contact)}</div></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">職歴・スキル・キャリア</span></div>
+      <div class="kv">${kv('職歴',hist)}${kv('保有資格',c.qualifications)}${kv('希望職種',c.career_job)}${kv('希望業界',c.career_industry)}${kv('将来やりたい仕事',c.future_work)}</div></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">診断・テスト結果</span></div><div class="bars">${testHtml}</div></div>
+    <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">希望条件</span></div>
+      <div class="kv">${kv('希望勤務地',c.pref_location)}${kv('希望雇用形態',c.pref_employment)}${kv('勤務可能曜日',days(c.pref_days))}${kv('勤務可能時間',c.pref_time)}${kv('希望年収',c.pref_annual_income?c.pref_annual_income+'万円':null)}${kv('転職希望時期',c.change_timing)}</div></div>`;
+});
+document.getElementById('finish').addEventListener('click', ()=>{
+  const t=document.getElementById('toast'); t.textContent='登録が完了しました'; t.classList.add('show');
+  setTimeout(()=>location.href='/done.html?id='+id, 800);
+});
+</script>
+</body>
+</html>

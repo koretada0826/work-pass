@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ホーム - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="/layout.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
+
+const gauge = (v,color) => `<div class="gauge" style="background:conic-gradient(${color} ${v}%, #e8eef5 0)"><div class="hole"><b>${v}<small>%</small></b></div></div>`;
+
+const jobs = [
+  { co:'株式会社Bright Sales', lg:'B', lc:'#5b6ef5', role:'インサイドセールス', m:94, sal:'420万〜520万円', loc:'東京都新宿区（リモート可）', tags:['未経験歓迎','リモート可','土日休み','営業'] },
+  { co:'Next Create', lg:'N', lc:'#2f9be0', role:'カスタマーサクセス', m:91, sal:'400万〜550万円', loc:'東京都渋谷区（リモート可）', tags:['未経験歓迎','リモート可','土日休み'] },
+  { co:'Growth Link', lg:'G', lc:'#22a06b', role:'営業企画', m:88, sal:'450万〜600万円', loc:'東京都港区', tags:['経験者優遇','土日休み','データ分析'] },
+];
+
+function build(cand){
+  const name = cand?.name || '佐藤 美咲';
+  const firstName = (name.split(/[ 　]/)[0]) || name;
+
+  // プロフィール充足率（実データがあれば算出）
+  let fill = 88;
+  if (cand) {
+    const keys = ['name','age','nearest_station','contact','pref_location','pref_employment','pref_time',
+      'career_job','career_industry','goal_3y','future_work','qualifications','val_growth'];
+    const f = keys.filter(k => cand[k]!=null && cand[k]!=='').length;
+    fill = Math.round(f/keys.length*100);
+  }
+
+  // 適性サマリー（実データ＝5診断のスコア or サンプル）
+  const t = cand?.tests || {};
+  const hasTests = Object.keys(t).length>0;
+  const aptData = hasTests
+    ? [['一般常識',t.general?.score],['営業適性',t.sales?.score],['コミュニケーション',t.communication?.score],['性格傾向',t.personality?.score],['ビジネスマナー',t.manners?.score]].map(([l,v])=>[l, v??0])
+    : [['一般常識',85],['営業適性',92],['コミュニケーション',89],['性格傾向',74],['ビジネスマナー',81]];
+  const apt = hasTests;
+
+  const welcome = `
+  <div class="grid" style="grid-template-columns:1.7fr 1fr 1fr 1fr 1fr">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:14px">
+        <span class="av" style="width:56px;height:56px;border-radius:50%;background:#e8f0ff;display:inline-block"></span>
+        <div><div style="font-size:19px;font-weight:800">こんにちは、${escS(firstName)}さん</div>
+          <div class="note">あなたに合う求人をAIが毎日更新しています。</div></div>
+      </div>
+      <div class="barrow" style="grid-template-columns:96px 1fr 42px;margin-top:16px">
+        <div class="bl">プロフィール充足率</div><div class="track"><i style="width:${fill}%"></i></div><div class="bv">${fill}%</div>
+      </div>
+      <button class="btn btn-primary block" style="margin-top:14px" onclick="location.href='/register.html'">プロフィールを更新　›</button>
+    </div>
+    <div class="card"><div class="stat" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div class="ico" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/></svg></div>
+      <div class="lab">おすすめ求人</div><div class="num">0<small>件</small></div><div class="delta">求人を準備中です</div></div></div>
+    <div class="card"><div class="stat" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div class="ico star" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.7 6.3L21 10l-5 4.3L17.5 21 12 17.5 6.5 21 8 14.3 3 10l6.3-.7z"/></svg></div>
+      <div class="lab">高一致マッチ</div><div class="num">0<small>件</small></div><div class="delta">求人登録後に算出</div></div></div>
+    <div class="card"><div class="stat" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div class="ico" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M5 21c0-4 3-6 7-6s7 2 7 6"/></svg></div>
+      <div class="lab">選考中</div><div class="num">0<small>件</small></div><div class="delta">—</div></div></div>
+    <div class="card"><div class="stat" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div class="ico cal" style="width:40px;height:40px"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></div>
+      <div class="lab">本日の予定</div><div class="num">0<small>件</small></div><div class="delta">予定はありません</div></div></div>
+  </div>`;
+
+  const jobCards = `
+  <div class="card">
+    <div class="card-h"><span class="hi">👍</span><span class="ct">あなたにおすすめの求人</span></div>
+    <div style="text-align:center;padding:34px 14px">
+      <div style="font-size:34px">🗂️</div>
+      <div style="font-size:15px;font-weight:800;margin-top:6px">現在ご紹介できる求人はまだありません</div>
+      <p class="note" style="max-width:440px;margin:8px auto 0">プロフィールと診断のご登録ありがとうございます。求人が追加され次第、あなたの適性・価値観・目標をもとにAIが相性の良い求人を自動でご提案します。</p>
+    </div>
+  </div>`;
+
+  const aptCard = `
+  <div class="card">
+    <div class="card-h"><span class="hi">📊</span><span class="ct">あなたの適性サマリー</span>${apt?'':'<span class="demoflag">サンプル</span>'}</div>
+    <div class="bars">
+      ${aptData.map(([l,v])=>`<div class="barrow" style="grid-template-columns:120px 1fr 34px"><div class="bl">${l}</div><div class="track"><i style="width:${v}%"></i></div><div class="bv">${v}</div></div>`).join('')}
+    </div>
+    <div style="margin-top:14px"><span class="tagline g">📈 成長重視</span> <span class="tagline o">🤝 人間関係重視</span> <span class="tagline p">⚖ ワークライフバランス</span></div>
+    <button class="btn btn-outline block" style="margin-top:16px" onclick="location.href='${id?('/candidate.html?id='+id):'#'}'">診断結果を見る　›</button>
+  </div>`;
+
+  const statusCard = `
+  <div class="card">
+    <div class="card-h"><span class="hi">📋</span><span class="ct">選考状況</span></div>
+    <div style="text-align:center;padding:24px 10px" class="muted"><div style="font-size:13px">進行中の選考はありません</div><div class="note" style="margin-top:4px">求人へ応募すると、ここに進捗が表示されます</div></div>
+  </div>`;
+
+  const todayCard = `
+  <div class="card">
+    <div class="card-h"><span class="hi">📅</span><span class="ct">本日の予定</span></div>
+    <div style="text-align:center;padding:24px 10px" class="muted"><div style="font-size:13px">予定はありません</div></div>
+  </div>`;
+
+  const savedCard = `
+  <div class="card">
+    <div class="card-h"><span class="hi">🔖</span><span class="ct">保存した求人</span></div>
+    <div style="text-align:center;padding:20px 10px" class="muted"><div class="note">気になる求人を保存すると、ここに表示されます</div></div>
+  </div>`;
+
+  const todoCard = `
+  <div class="card">
+    <div class="card-h"><span class="hi">✓</span><span class="ct">次にやること</span></div>
+    ${[['希望勤務地を入力',true],['職歴を更新',true],['適性診断を完了',!!apt],['初回面談を予約',false]].map(([t,done])=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f0f2f6">
+        <span style="color:${done?'var(--good)':'#cfd8e6'}">${done?'✅':'⭕'}</span>
+        <div style="flex:1;font-size:14px">${t}</div>
+        <span class="${done?'note':'more'}">${done?'完了':(t.includes('面談')?'<a href="#">予約する</a>':'入力する')}</span></div>`).join('')}
+  </div>`;
+
+  document.getElementById('content').innerHTML = `
+    ${welcome}
+    <div style="height:18px"></div>
+    <div class="card" id="aiseeker" style="margin-bottom:18px"></div>
+    <div class="grid g-2">
+      <div style="display:flex;flex-direction:column;gap:18px">${jobCards}<div class="grid" style="grid-template-columns:1.4fr 1fr">${statusCard}${todayCard}</div></div>
+      <div style="display:flex;flex-direction:column;gap:18px">${aptCard}${savedCard}${todoCard}</div>
+    </div>`;
+  if (id) loadSeekerAI(cand);
+}
+
+const escS = s => (s==null||s==='')?'':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const chipsS = arr => (arr||[]).map(x=>`<span class="chip">${escS(x)}</span>`).join(' ')||'<span class="muted">-</span>';
+const listS = arr => '<ul style="margin:6px 0 0;padding-left:18px">'+(arr||[]).map(x=>`<li>${escS(x)}</li>`).join('')+'</ul>';
+function spectrumS(ax){
+  const s=Math.max(2,Math.min(98, ax.score==null?50:ax.score));
+  return `<div style="margin:10px 0"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:5px"><span>${escS(ax.left||'')}</span><span>${escS(ax.right||'')}</span></div>
+    <div style="position:relative;height:8px;background:linear-gradient(90deg,#c9dbff,#cdefd8);border-radius:6px"><span style="position:absolute;top:-4px;left:calc(${s}% - 8px);width:16px;height:16px;border-radius:50%;background:var(--brand);border:3px solid #fff;box-shadow:0 1px 4px rgba(20,40,80,.25)"></span></div>
+    ${ax.note?`<div class="note" style="margin-top:4px">${escS(ax.note)}</div>`:''}</div>`;
+}
+async function loadSeekerAI(cand){
+  const el=document.getElementById('aiseeker'); if(!el) return;
+  el.innerHTML=`<div class="card-h"><span class="hi">✨</span><span class="ct">あなたのAIキャリア診断</span></div><p class="muted">診断結果を読み込んでいます…</p>`;
+  if(cand && cand.ai_analysis){ renderSeekerAI(cand.ai_analysis); return; }
+  // 未生成なら自動で生成（保存されるので次回以降も表示）
+  const st=await fetch('/api/ai/status').then(r=>r.json()).catch(()=>({enabled:false}));
+  if(!st.enabled){ el.innerHTML=`<div class="card-h"><span class="hi">✨</span><span class="ct">あなたのAIキャリア診断</span></div>
+    <p class="muted">AIキャリア診断は現在準備中です。診断・テストのご登録ありがとうございました。準備が整い次第、あなたの強みや向いている仕事・企業タイプをここに表示します。</p>`; return; }
+  el.innerHTML=`<div class="card-h"><span class="hi">✨</span><span class="ct">あなたのAIキャリア診断</span></div><p class="muted">AIがあなたの診断結果と目標を分析しています…（10秒ほど）</p>`;
+  try{
+    const j=await fetch('/api/candidates/'+id+'/analyze',{method:'POST'}).then(r=>r.json());
+    if(j.analysis) renderSeekerAI(j.analysis);
+    else el.innerHTML=`<div class="card-h"><span class="hi">✨</span><span class="ct">あなたのAIキャリア診断</span></div><p class="muted">ただいま混み合っています。時間をおいて再度お開きください。</p>`;
+  }catch(e){ el.innerHTML=`<div class="card-h"><span class="hi">✨</span><span class="ct">あなたのAIキャリア診断</span></div><p class="muted">読み込みに失敗しました。</p>`; }
+}
+function renderSeekerAI(a){
+  const el=document.getElementById('aiseeker'); const em=a.ever_match||{}, cf=a.company_fit||{};
+  el.innerHTML=`<div class="card-h"><span class="hi">✨</span><span class="ct">あなたのAIキャリア診断</span><span class="tagline" style="margin-left:auto">${escS(a.recommended_type||'')}</span></div>
+    <p style="margin:0 0 14px">${escS(a.summary||'')}</p>
+    <div class="grid2" style="align-items:start">
+      <div><div class="fl">あなたの強み</div>${listS(a.strengths)}</div>
+      <div><div class="fl">向いている職種</div><div style="margin-top:6px">${chipsS(a.fit_jobs)}</div>
+           <div class="fl" style="margin-top:10px">向いている業界</div><div style="margin-top:6px">${chipsS(a.fit_industries)}</div></div>
+    </div>
+    <hr class="hr">
+    <div class="card-h" style="margin-bottom:6px"><span class="ct" style="font-size:15px">あなたに向いている企業タイプ</span><span class="tagline" style="margin-left:auto">${escS(cf.summary_label||'')}</span></div>
+    <div class="grid2" style="gap:2px 28px">${(cf.axes||[]).map(spectrumS).join('')}</div>
+    <div class="grid2" style="margin-top:10px">
+      <div><div class="fl" style="color:var(--good)">◎ あなたが輝ける環境</div>${listS(cf.best_environments)}</div>
+      <div><div class="fl" style="color:#d97706">△ 気をつけたい環境</div>${listS(cf.avoid_environments)}</div>
+    </div>
+    <div style="margin-top:10px"><div class="fl">こんな企業がおすすめ</div><div style="margin-top:6px">${chipsS(a.recommended_company_examples)}</div></div>
+    <hr class="hr">
+    <div class="fl">応募先（Everエフォート）との相性</div>
+    <div style="display:flex;align-items:baseline;gap:12px;margin:4px 0 6px"><div style="font-size:34px;font-weight:800;color:var(--brand);line-height:1">${em.score??'-'}<small style="font-size:16px">%</small></div><div style="font-weight:700;color:var(--brand)">${escS(em.verdict||'')}</div></div>`;
+}
+
+renderLayout({ role:'seeker', active:'home', title:'ホーム' });
+if (id) {
+  fetch('/api/candidates/'+id).then(r=>r.json()).then(c=>build(c.error?null:c)).catch(()=>build(null));
+} else {
+  build(null);
+}
+</script>
+</body>
+</html>

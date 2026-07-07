@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>設定 - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="/layout.js"></script>
+<script>
+renderLayout({ role:'admin', active:'settings', title:'設定' });
+fetch('/api/ai/status').then(r=>r.json()).then(s=>{
+  document.getElementById('content').innerHTML=`
+  <div class="card" style="max-width:720px">
+    <div class="card-h"><span class="hi">✨</span><span class="ct">AI（無料・Gemini）</span></div>
+    <div class="kv" style="grid-template-columns:140px 1fr">
+      <div class="k">状態</div><div>${s.enabled?'<span class="badge b-ok">有効</span>':'<span class="badge b-wait">未設定</span>'}</div>
+      <div class="k">モデル</div><div>${s.model}</div>
+    </div>
+    ${s.enabled?'<p class="note" style="margin-top:12px">AI分析・AIマッチングが利用できます。</p>':`
+    <hr class="hr">
+    <div style="font-weight:800;margin-bottom:8px">AIを有効にする手順（無料）</div>
+    <ol style="margin:0;padding-left:20px;line-height:2">
+      <li>Google AI Studio（<a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a>）で無料のAPIキーを取得</li>
+      <li><code>workpass/.env</code> を作成し、次を記入：<br><code style="background:#f3f6fc;padding:2px 8px;border-radius:6px;display:inline-block;margin-top:4px">GEMINI_API_KEY=あなたのキー</code></li>
+      <li>サーバーを再起動（<code>node server.js</code>）</li>
+      <li>この画面を再読み込みすると「有効」になります</li>
+    </ol>
+    <p class="note" style="margin-top:10px">※ APIキーは .env にのみ保存され、外部には送信されません（Geminiへの分析リクエスト時のみ使用）。</p>`}
+  </div>`;
+});
+</script>
+</body>
+</html>

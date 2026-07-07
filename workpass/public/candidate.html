@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>求職者詳細 - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="/layout.js"></script>
+<script>
+const id = new URLSearchParams(location.search).get('id');
+const esc = s => (s==null||s==='')?'<span class="muted">-</span>':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const escA = s => String(s==null?'':s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); // 属性/textarea用
+const num = v => Number.isFinite(Number(v)) ? Number(v) : '-';
+const days = j => { try{const a=JSON.parse(j||'[]');return a.length?a.join('・'):null}catch{return j} };
+const bar = (label,v)=>`<div class="barrow"><div class="bl">${label}</div><div class="track"><i style="width:${v||0}%"></i></div><div class="bv">${v??'-'}</div></div>`;
+const kv = (k,v)=>`<div class="k">${k}</div><div>${esc(v)}</div>`;
+const toast = m => { const t=document.getElementById('toast'); if(!t)return; t.textContent=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); };
+
+renderLayout({ role:'admin', active:'seekers', title:'求職者詳細' });
+load();
+
+async function load(){
+  const c = await fetch('/api/candidates/'+id).then(r=>r.json());
+  const el = document.getElementById('content');
+  if(c.error){ el.innerHTML='<div class="card">該当データがありません</div>'; return; }
+  const badge={'登録済':['b-reg','登録済'],'診断済':['b-sel','診断済'],'面談済':['b-ok','面談済'],'採用':['b-ok','採用'],'紹介可':['b-ok','紹介可'],'保留':['b-reg','保留']}[c.status]||['b-reg',c.status];
+
+  const t=c.tests||{};
+  const testDefs=[['一般常識テスト','general'],['営業適性診断','sales'],['コミュニケーション診断','communication'],['性格診断','personality'],['ビジネスマナー診断','manners']];
+  const testsHtml = Object.keys(t).length ? testDefs.map(([l,k])=>bar(l, t[k]?t[k].score:0)).join('') : '<p class="muted">未実施</p>';
+  const persona = t.personality?.detail?.top ? `<div style="margin-top:10px"><span class="tagline">性格タイプ：${t.personality.detail.top}</span></div>` : '';
+  const histHtml = (c.work_histories||[]).length ? c.work_histories.map(h=>`
+    <div class="q" style="box-shadow:none;background:#f7f9fd"><div class="qt">${esc(h.industry)} / ${esc(h.job_type)} <span class="chip">${esc(h.years)}年</span></div>
+      <div class="kv">${kv('実績',h.achievement)}${kv('退職理由',h.resignation_reason)}</div></div>`).join('') : '<p class="muted">登録なし</p>';
+
+  el.innerHTML=`
+    <div style="margin-bottom:14px"><a class="more" href="/admin.html">‹ 求職者一覧へ戻る</a></div>
+    <div class="card" style="margin-bottom:18px;display:flex;align-items:center;gap:16px">
+      <span class="av" style="width:64px;height:64px;border-radius:50%;background:var(--brand-l);display:inline-block"></span>
+      <div style="flex:1"><div style="font-size:22px;font-weight:800">${esc(c.name)} <span class="badge ${badge[0]}">${badge[1]}</span></div>
+        <div class="note">#${c.id}・登録日 ${(c.created_at||'').slice(0,10)}</div></div>
+      <a class="btn btn-outline sm" href="/tests.html?id=${id}">診断・テストを実施</a>
+    </div>
+
+    <div class="card" id="aicard" style="margin-bottom:18px"></div>
+
+    <div class="grid g-2">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="card"><div class="card-h"><span class="ct">基本情報</span></div><div class="kv">
+          ${kv('年齢',c.age?c.age+'歳':null)}${kv('最寄駅',c.nearest_station)}${kv('通勤可能範囲',c.commute_range?c.commute_range+'分':null)}${kv('連絡先',c.contact)}</div></div>
+        <div class="card"><div class="card-h"><span class="ct">勤務条件</span></div><div class="kv">
+          ${kv('希望勤務地',c.pref_location)}${kv('希望雇用形態',c.pref_employment)}${kv('勤務可能曜日',days(c.pref_days))}${kv('勤務可能時間',c.pref_time)}
+          ${kv('希望年収',c.pref_annual_income?c.pref_annual_income+'万円':null)}${kv('希望月収',c.pref_monthly_income?c.pref_monthly_income+'万円':null)}${kv('転職希望時期',c.change_timing)}</div></div>
+        <div class="card"><div class="card-h"><span class="ct">職歴</span></div>${histHtml}</div>
+        <div class="card"><div class="card-h"><span class="ct">キャリア</span></div><div class="kv">
+          ${kv('希望職種',c.career_job)}${kv('希望業界',c.career_industry)}${kv('3年後の目標',c.goal_3y)}${kv('5年後の目標',c.goal_5y)}${kv('将来やりたい仕事',c.future_work)}</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <div class="card"><div class="card-h"><span class="ct">診断・テスト結果</span></div><div class="bars">${testsHtml}</div>${persona}</div>
+        <div class="card"><div class="card-h"><span class="ct">スキル</span></div><div class="bars">
+          ${bar('営業',c.skill_sales*20)}${bar('接客',c.skill_hospitality*20)}${bar('事務',c.skill_admin*20)}${bar('PCスキル',c.skill_pc*20)}${bar('AIツール',c.skill_ai*20)}</div>
+          <div class="kv" style="margin-top:10px">${kv('保有資格',c.qualifications)}</div></div>
+        <div class="card"><div class="card-h"><span class="ct">価値観</span></div><div class="bars">
+          ${bar('成長重視',c.val_growth*20)}${bar('安定重視',c.val_stability*20)}${bar('人間関係重視',c.val_relationship*20)}${bar('WLB重視',c.val_wlb*20)}</div></div>
+        <div class="card"><div class="card-h"><span class="ct">面談評価</span><span class="note" style="margin-left:6px">担当が入力</span></div>
+          <div class="grid2">
+            ${['iv_impression:第一印象','iv_comm:コミュニケーション','iv_proactive:積極性','iv_personality:人柄'].map(x=>{const[n,l]=x.split(':');const cur=c[n]||'';
+              return `<div class="field"><label class="fl">${l}（1〜5）</label><select id="${n}"><option value="">-</option>${[1,2,3,4,5].map(v=>`<option value="${v}" ${cur==v?'selected':''}>${v}</option>`).join('')}</select></div>`;}).join('')}
+          </div>
+          <div class="field"><label class="fl">評価者名</label><input id="iv_evaluator" value="${escA(c.iv_evaluator)}"></div>
+          <div class="field"><label class="fl">コメント</label><textarea id="iv_comment">${escA(c.iv_comment)}</textarea></div>
+          <button class="btn btn-primary sm" onclick="saveIV()">面談評価を保存</button>
+          ${c.iv_date?`<span class="note" style="margin-left:8px">最終保存：${c.iv_date.slice(0,10)}</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="toast" id="toast"></div>`;
+  renderAI(c.ai_analysis);
+}
+
+function chips(arr){ return (arr||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join(' ') || '<span class="muted">-</span>'; }
+function list(arr){ return '<ul style="margin:6px 0 0;padding-left:18px">'+(arr||[]).map(x=>`<li>${esc(x)}</li>`).join('')+'</ul>'; }
+function renderAI(a){
+  const el=document.getElementById('aicard'); if(!el) return;
+  const head=`<div class="card-h"><span class="hi">✨</span><span class="ct">AIキャリア診断（Everとの相性＋向いている職・企業）</span>
+    <button class="btn btn-primary sm" style="margin-left:auto" onclick="runAI(this)">${a?'再分析する':'AIで分析する'}</button></div>`;
+  if(!a){ el.innerHTML=head+`<p class="note">Geminiが診断スコアと自由記述（3年後の目標など）を読み取り、<b>Everエフォートとの相性</b>・向いている職種・向いている企業タイプ（大手向き/ベンチャー向き）・強み・面談確認ポイントを提示します。求人が無くても分析できます。ボタンを押してください。</p>`; return; }
+  const em=a.ever_match||{}, cf=a.company_fit||{};
+  el.innerHTML=head+`
+    <div class="card" style="box-shadow:none;background:#f4f8ff;border-color:#dbe7ff;margin:0 0 14px">
+      <div class="fl">Everエフォートとの相性</div>
+      <div style="display:flex;align-items:baseline;gap:12px;margin:4px 0 6px">
+        <div style="font-size:42px;font-weight:800;color:var(--brand);line-height:1">${num(em.score)}<small style="font-size:18px">%</small></div>
+        <div style="font-weight:700;color:var(--brand)">${esc(em.verdict||'')}</div>
+      </div>
+      <ul style="margin:0;padding-left:18px">${(em.reasons||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
+    </div>
+
+    <div class="card" style="box-shadow:none;background:#fafbfe;margin:0 0 14px">
+      <div class="card-h" style="margin-bottom:8px"><span class="ct" style="font-size:15px">向いている企業タイプ（多軸診断）</span>
+        <span class="tagline" style="margin-left:auto">${esc(cf.summary_label||'')}</span></div>
+      <div class="grid2" style="gap:2px 28px">${(cf.axes||[]).map(spectrum).join('')}</div>
+      <hr class="hr">
+      <div class="grid2">
+        <div><div class="fl" style="color:var(--good)">◎ 輝ける環境</div>${list(cf.best_environments)}</div>
+        <div><div class="fl" style="color:#d97706">△ 避けたい環境</div>${list(cf.avoid_environments)}</div>
+      </div>
+    </div>
+
+    <div style="margin:0 0 4px"><span class="tagline">${esc(a.recommended_type||'')}</span></div>
+    <p style="margin:0 0 12px">${esc(a.summary||'')}</p>
+    <div class="grid2">
+      <div><div class="fl">向いている職種</div><div style="margin-top:6px">${chips(a.fit_jobs)}</div></div>
+      <div><div class="fl">向いている業界</div><div style="margin-top:6px">${chips(a.fit_industries)}</div></div>
+      <div style="grid-column:1/-1"><div class="fl">向いている企業の例</div><div style="margin-top:6px">${chips(a.recommended_company_examples)}</div></div>
+      <div><div class="fl">強み</div>${list(a.strengths)}</div>
+      <div><div class="fl">志向タグ</div><div style="margin-top:6px">${chips(a.orientation_tags)}</div></div>
+      <div><div class="fl">懸念点・確認事項</div>${list(a.concerns)}</div>
+      <div><div class="fl">面談で確認すべき質問</div>${list(a.interview_points)}</div>
+    </div>
+    ${a.created_at?`<div class="note" style="margin-top:10px">分析日時：${new Date(a.created_at).toLocaleString('ja-JP')}</div>`:''}`;
+}
+function spectrum(ax){
+  const s=Math.max(2,Math.min(98, ax.score==null?50:ax.score));
+  return `<div style="margin:10px 0">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:5px"><span>${esc(ax.left||'')}</span><span>${esc(ax.right||'')}</span></div>
+    <div style="position:relative;height:8px;background:linear-gradient(90deg,#c9dbff,#cdefd8);border-radius:6px">
+      <span style="position:absolute;top:-4px;left:calc(${s}% - 8px);width:16px;height:16px;border-radius:50%;background:var(--brand);border:3px solid #fff;box-shadow:0 1px 4px rgba(20,40,80,.25)"></span>
+    </div>
+    ${ax.note?`<div class="note" style="margin-top:4px">${esc(ax.note)}</div>`:''}
+  </div>`;
+}
+async function runAI(btn){
+  btn.disabled=true; btn.textContent='分析中…（10秒ほど）';
+  try{
+    const r=await fetch('/api/candidates/'+id+'/analyze',{method:'POST'});
+    const j=await r.json();
+    if(!r.ok){
+      const el=document.getElementById('aicard');
+      el.innerHTML=`<div class="card-h"><span class="hi">✨</span><span class="ct">AI分析</span></div>
+        <p style="color:#d14343">${j.error==='NO_KEY'?'GEMINIのAPIキーが未設定です。':'分析に失敗しました。'} ${esc(j.message||'')}</p>
+        ${j.error==='NO_KEY'?'<p class="note">workpass/.env に <b>GEMINI_API_KEY=あなたのキー</b> を追記してサーバーを再起動してください（Google AI Studioで無料取得）。</p>':''}`;
+      return;
+    }
+    renderAI({...j.analysis, created_at:new Date().toISOString()});
+    toast('AI分析が完了しました');
+  }catch(e){ toast('通信エラー'); btn.disabled=false; btn.textContent='AIで分析する'; }
+}
+async function saveIV(){
+  const body={};
+  ['iv_impression','iv_comm','iv_proactive','iv_personality'].forEach(n=>{const v=document.getElementById(n).value; body[n]=v?Number(v):null;});
+  body.iv_evaluator=document.getElementById('iv_evaluator').value||null;
+  body.iv_comment=document.getElementById('iv_comment').value||null;
+  await fetch('/api/candidates/'+id+'/interview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  toast('面談評価を保存しました'); setTimeout(load,700);
+}
+</script>
+</body>
+</html>

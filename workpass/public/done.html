@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ご登録ありがとうございました - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="wiz"></div>
+<div class="obwrap" style="max-width:560px">
+  <div class="card" style="text-align:center;padding:44px 28px">
+    <div style="width:76px;height:76px;border-radius:50%;background:var(--good-bg);display:grid;place-items:center;margin:0 auto 8px">
+      <svg viewBox="0 0 24 24" width="40" fill="none" stroke="#16a34a" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div>
+    <h1 style="font-size:25px">ご登録ありがとうございました</h1>
+    <p class="lead" style="margin-top:12px">プロフィール・5つの診断・希望条件の登録が完了しました。内容を確認のうえ、担当者よりご連絡いたします。あなたに合ったお仕事をご提案できるよう努めます。</p>
+    <div id="cta" style="margin-top:24px"></div>
+    <p class="note" style="margin-top:16px">この画面は閉じていただいて大丈夫です。</p>
+  </div>
+</div>
+<script src="/layout.js"></script>
+<script>
+document.getElementById('wiz').innerHTML = wizHeader(5);
+const id=new URLSearchParams(location.search).get('id');
+if(id) document.getElementById('cta').innerHTML=`<a class="btn btn-primary lg" href="/home.html?id=${id}">マイページ（ホーム）を見る　›</a>`;
+</script>
+</body>
+</html>

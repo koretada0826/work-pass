@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>プロフィール入力 - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="wiz"></div>
+<div class="obwrap">
+  <div style="text-align:center">
+    <h1 style="font-size:28px;margin:8px 0">プロフィールを入力しましょう</h1>
+    <p class="lead">わかる範囲で大丈夫です。次のステップで適性診断・テストに進みます。</p>
+  </div>
+  <form id="form">
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><span class="ct">基本情報</span></div>
+    <div class="grid2">
+      <div class="field"><label class="fl">氏名 <span class="req">必須</span></label><input name="name" required></div>
+      <div class="field"><label class="fl">年齢 <span class="req">必須</span></label><input name="age" type="number" min="15" max="99" required></div>
+      <div class="field"><label class="fl">最寄駅 <span class="req">必須</span></label><input name="nearest_station" placeholder="例）新宿駅" required></div>
+      <div class="field"><label class="fl">通勤可能範囲（分） <span class="req">必須</span></label><input name="commute_range" type="number" min="0" placeholder="例）60" required></div>
+    </div>
+    <div class="field"><label class="fl">連絡先（電話 / メール / LINE） <span class="req">必須</span></label><input name="contact" required></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><span class="ct">職歴</span><span class="note" style="margin-left:8px">複数追加できます</span></div>
+    <div id="histories"></div>
+    <button type="button" class="btn btn-ghost sm" onclick="addHistory()">＋ 職歴を追加</button>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><span class="ct">スキル</span><span class="note" style="margin-left:8px">0＝無し 〜 5＝得意</span></div>
+    <div class="grid3" id="skillgrid"></div>
+    <div class="field" style="margin-top:8px"><label class="fl">保有資格 <span class="req">必須</span></label><input name="qualifications" placeholder="例）普通自動車免許, 日商簿記2級, TOEIC700（無ければ「なし」）" required></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-h"><span class="ct">キャリア</span></div>
+    <div class="grid2">
+      <div class="field"><label class="fl">希望職種 <span class="req">必須</span></label><input name="career_job" required></div>
+      <div class="field"><label class="fl">希望業界 <span class="req">必須</span></label><input name="career_industry" required></div>
+    </div>
+    <div class="field"><label class="fl">3年後の目標 <span class="req">必須・200文字以上</span></label>
+      <textarea name="goal_3y" required minlength="200" data-min="200" placeholder="将来のイメージをできるだけ具体的に（200文字以上）"></textarea>
+      <div class="note charcount" data-for="goal_3y">0 / 200文字</div></div>
+    <div class="field"><label class="fl">5年後の目標 <span class="req">必須・200文字以上</span></label>
+      <textarea name="goal_5y" required minlength="200" data-min="200" placeholder="将来のイメージをできるだけ具体的に（200文字以上）"></textarea>
+      <div class="note charcount" data-for="goal_5y">0 / 200文字</div></div>
+    <div class="field"><label class="fl">将来やりたい仕事 <span class="req">必須・200文字以上</span></label>
+      <textarea name="future_work" required minlength="200" data-min="200" placeholder="やってみたい仕事や理由を具体的に（200文字以上）"></textarea>
+      <div class="note charcount" data-for="future_work">0 / 200文字</div></div>
+  </div>
+
+  <div style="display:flex;gap:12px;justify-content:flex-end">
+    <a class="btn btn-ghost" href="/">やめる</a>
+    <button type="submit" class="btn btn-primary">適性診断・テストへ進む →</button>
+  </div>
+  </form>
+</div>
+<div class="toast" id="toast"></div>
+<script src="/layout.js"></script>
+<script>
+document.getElementById('wiz').innerHTML = wizHeader(1);
+const opt05 = '<option value="" selected disabled>選択</option>'+Array.from({length:6},(_,i)=>`<option value="${i}">${i}</option>`).join('');
+const skills=[['skill_sales','営業'],['skill_hospitality','接客'],['skill_admin','事務'],['skill_pc','PCスキル'],['skill_ai','AIツール']];
+document.getElementById('skillgrid').innerHTML = skills.map(([n,l])=>`<div class="field"><label class="fl">${l} <span class="req">必須</span></label><select name="${n}" required>${opt05}</select></div>`).join('');
+
+// 200文字カウンター
+function bindCounters(){
+  document.querySelectorAll('.charcount').forEach(cc=>{
+    const ta=document.querySelector(`textarea[name="${cc.dataset.for}"]`); if(!ta||ta._bound) return; ta._bound=1;
+    const min=Number(ta.dataset.min||0);
+    const upd=()=>{ const n=ta.value.length; cc.textContent=`${n} / ${min}文字`; cc.style.color = n>=min ? 'var(--good)' : (n>0?'var(--warn)':'var(--mut2)'); };
+    ta.addEventListener('input',upd); upd();
+  });
+}
+bindCounters();
+
+function addHistory(){
+  const div=document.createElement('div');
+  div.className='card'; div.style.cssText='background:#f7f9fd;margin-bottom:12px'; div.dataset.h='1';
+  div.innerHTML=`<div class="grid2">
+      <div class="field"><label class="fl">業界 <span class="req">必須</span></label><input data-f="industry" required></div>
+      <div class="field"><label class="fl">職種 <span class="req">必須</span></label><input data-f="job_type" required></div>
+      <div class="field"><label class="fl">勤務年数 <span class="req">必須</span></label><input data-f="years" type="number" step="0.5" min="0" required></div>
+      <div class="field"><label class="fl">退職理由 <span class="req">必須</span></label><input data-f="resignation_reason" required></div>
+    </div>
+    <div class="field"><label class="fl">実績（数値で書けると◎） <span class="req">必須</span></label><textarea data-f="achievement" placeholder="例）新規開拓 月10件 / 売上前年比120%" required></textarea></div>
+    <button type="button" class="btn btn-ghost sm" onclick="this.parentNode.remove()">この職歴を削除</button>`;
+  document.getElementById('histories').appendChild(div);
+}
+addHistory();
+
+document.getElementById('form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn=e.target.querySelector('button[type=submit]'); if(btn.disabled) return; btn.disabled=true; // 二重送信防止
+  const fd=new FormData(e.target); const data={};
+  for(const [k,v] of fd.entries()) data[k]= v===''? null : v;
+  ['age','commute_range','skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai'].forEach(k=>{ if(data[k]!=null) data[k]=Number(data[k]); });
+  data.work_histories=[...document.querySelectorAll('[data-h]')].map(h=>{
+    const o={}; h.querySelectorAll('[data-f]').forEach(el=>o[el.dataset.f]= el.value||null);
+    if(o.years!=null) o.years=Number(o.years); return o;
+  }).filter(o=>o.industry||o.job_type);
+  let j;
+  try{ const r=await fetch('/api/candidates',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); j=await r.json(); if(!r.ok) throw new Error(j.error||'save failed'); }
+  catch(err){ btn.disabled=false; const t=document.getElementById('toast'); t.textContent='保存に失敗しました。時間をおいて再度お試しください。'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); return; }
+  if(!j||!j.id){ btn.disabled=false; const t=document.getElementById('toast'); t.textContent='保存に失敗しました（IDが取得できませんでした）'; t.classList.add('show'); return; }
+  const t=document.getElementById('toast'); t.textContent='保存しました。適性診断・テストへ進みます…'; t.classList.add('show');
+  setTimeout(()=>location.href='/tests.html?id='+j.id, 800);
+});
+</script>
+</body>
+</html>

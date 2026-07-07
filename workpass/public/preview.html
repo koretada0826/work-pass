@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>適性診断の確認 - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="/layout.js"></script>
+<script>
+renderLayout({ role:'admin', active:'preview', title:'適性診断の確認' });
+const esc = s => (s==null||s==='')?'':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+const scale=[['1','違う'],['2','やや違う'],['3','どちらとも'],['4','やや近い'],['5','近い']];
+
+const el = document.getElementById('content');
+el.innerHTML = `<div class="card" style="margin-bottom:16px"><p class="muted" style="margin:0">求職者が受験する5つの診断・テストの中身を確認できます（閲覧のみ・保存はされません）。項目をクリックで開閉します。</p></div><div id="list">読み込み中…</div>`;
+
+fetch('/api/tests').then(r=>r.json()).then(async tests=>{
+  const details = await Promise.all(tests.map(t=>fetch('/api/tests/'+t.key).then(r=>r.json())));
+  document.getElementById('list').innerHTML = tests.map((t,i)=>{
+    const d=details[i];
+    let body='';
+    if(d.type==='mc'){
+      body = d.questions.map((qq,qi)=>`<div class="q" style="box-shadow:none"><div class="qt">Q${qi+1}. ${esc(qq.q)}</div>${qq.choices.map(c=>`<label class="opt" style="cursor:default">・ ${esc(c)}</label>`).join('')}</div>`).join('');
+    } else if(d.type==='likert'){
+      body = `<p class="note">各設問に5段階（${scale.map(s=>s[0]+'='+s[1]).join(' / ')}）で回答します。</p>`+
+        d.items.map((it,qi)=>`<div class="q" style="box-shadow:none"><div>${qi+1}. ${esc(it)}</div></div>`).join('');
+    } else {
+      body = `<p class="note">価値観・行動特性を5段階で測定します。</p>`+
+        d.dims.map(dim=>`<div class="q" style="box-shadow:none"><div class="qt">${esc(dim.label)}</div>${dim.items.map(it=>`<div>・ ${esc(it)}</div>`).join('')}</div>`).join('');
+    }
+    return `<div class="card" style="margin-bottom:14px">
+      <div class="card-h" style="cursor:pointer;margin-bottom:0" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <span style="width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;font-weight:800;display:grid;place-items:center;font-size:13px">${i+1}</span>
+        <span class="ct">${esc(t.label)}</span><span class="note">${esc(t.sub)}・約${t.minutes}分・${t.type==='mc'?'選択式(自動採点)':'5段階回答'}</span>
+        <span class="more" style="margin-left:auto">開く/閉じる</span>
+      </div>
+      <div style="display:none;margin-top:14px">${body}</div>
+    </div>`;
+  }).join('');
+});
+</script>
+</body>
+</html>

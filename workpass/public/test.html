@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>診断・テスト - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div class="obhead"><div class="logo">WORK <b>PASS</b></div><div class="tag" id="tag">適性診断・テスト</div></div>
+<div class="obwrap">
+  <div style="margin-bottom:12px"><a class="note" href="#" id="back">‹ 診断一覧へ戻る</a></div>
+  <h1 id="title" style="font-size:24px"></h1>
+  <p class="lead" id="lead"></p>
+  <form id="form"></form>
+  <div style="display:flex;gap:12px;margin-top:8px">
+    <button class="btn btn-primary" id="submit">回答する →</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const params=new URLSearchParams(location.search);
+const id=params.get('id'), key=params.get('key');
+document.getElementById('back').href='/tests.html?id='+id;
+const scale=[['1','違う'],['2','やや違う'],['3','どちらとも'],['4','やや近い'],['5','近い']];
+let T=null;
+
+fetch('/api/tests/'+key).then(r=>r.json()).then(t=>{
+  T=t;
+  document.getElementById('tag').textContent=t.label;
+  document.getElementById('title').textContent=t.label;
+  document.getElementById('lead').textContent = t.type==='mc'
+    ? '各設問から正しいと思うものを1つ選んでください。自動採点されます。'
+    : '各設問に、どれくらい当てはまるかを5段階で選んでください。正解・不正解はありません。';
+  const f=document.getElementById('form');
+  if(t.type==='mc'){
+    f.innerHTML=t.questions.map((qq,i)=>`
+      <div class="q"><div class="qt">Q${i+1}. ${qq.q}</div>
+        ${qq.choices.map((c,ci)=>`<label class="opt"><input type="radio" name="q_${i}" value="${ci}"> ${c}</label>`).join('')}</div>`).join('');
+    f.querySelectorAll('.opt').forEach(o=>o.addEventListener('click',()=>{
+      const nm=o.querySelector('input').name;
+      f.querySelectorAll(`input[name="${nm}"]`).forEach(x=>x.closest('.opt').classList.remove('sel'));
+      o.classList.add('sel');
+    }));
+  } else if(t.type==='likert'){
+    f.innerHTML=`<div class="q"><div class="qt" style="color:var(--brand)">${t.dim}</div>`+
+      t.items.map((it,i)=>likert('q',i,it)).join('')+`</div>`;
+    bindLikert();
+  } else { // likert-multi
+    f.innerHTML=t.dims.map(d=>`<div class="q"><div class="qt" style="color:var(--brand)">${d.label}</div>`+
+      d.items.map((it,i)=>likert(d.key,i,it)).join('')+`</div>`).join('');
+    bindLikert();
+  }
+});
+function likert(group,i,text){
+  return `<div style="margin-bottom:16px"><div style="margin-bottom:8px">${text}</div>
+    <div class="likert">${scale.map(([v,l])=>`<label data-g="${group}" data-i="${i}"><input type="radio" name="${group}_${i}" value="${v}"><b>${v}</b>${l}</label>`).join('')}</div></div>`;
+}
+function bindLikert(){
+  document.querySelectorAll('.likert label').forEach(lb=>lb.addEventListener('click',()=>{
+    lb.parentNode.querySelectorAll('label').forEach(x=>x.classList.remove('on')); lb.classList.add('on');
+  }));
+}
+function warn(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+document.getElementById('submit').addEventListener('click', async (ev)=>{
+  const btn=ev.currentTarget;
+  // 全問回答チェック（未回答での「完了」を防ぐ）
+  let unanswered=0, answers;
+  if(T.type==='mc'){ answers=T.questions.map((_,i)=>{const s=document.querySelector(`input[name="q_${i}"]:checked`);if(!s)unanswered++;return s?Number(s.value):-1;}); }
+  else if(T.type==='likert'){ answers=T.items.map((_,i)=>{const s=document.querySelector(`input[name="q_${i}"]:checked`);if(!s)unanswered++;return s?Number(s.value):3;}); }
+  else { answers={}; T.dims.forEach(d=>{answers[d.key]=d.items.map((_,i)=>{const s=document.querySelector(`input[name="${d.key}_${i}"]:checked`);if(!s)unanswered++;return s?Number(s.value):3;});}); }
+  if(unanswered>0){ warn(`未回答の設問が${unanswered}問あります。すべてお答えください。`); return; }
+  if(btn.disabled) return; btn.disabled=true;
+  try{
+    const r=await fetch(`/api/candidates/${id}/tests/${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answers})});
+    const j=await r.json(); if(!r.ok||!j.result) throw new Error();
+    const t=document.getElementById('toast'); t.textContent=`${T.label} 完了（${j.result.score}点）`; t.classList.add('show');
+    setTimeout(()=>location.href='/tests.html?id='+id, 900);
+  }catch(e){ btn.disabled=false; warn('保存に失敗しました。時間をおいて再度お試しください。'); }
+});
+</script>
+</body>
+</html>
