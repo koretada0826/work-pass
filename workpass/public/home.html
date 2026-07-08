@@ -122,6 +122,7 @@ function build(cand){
       <div style="display:flex;flex-direction:column;gap:18px">${aptCard}${savedCard}${todoCard}</div>
     </div>`;
   if (id) { loadSeekerAI(cand); loadJobRecs(); }
+  if (location.hash) { const t=document.querySelector(location.hash); if(t) setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'start'}),300); }
 }
 
 async function loadJobRecs(){

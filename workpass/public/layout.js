@@ -32,14 +32,8 @@
       user:['Ever 採用担当','株式会社Everエフォート'] },
     seeker:{ items:[
       ['home','ホーム','home','/home.html'],
-      ['jobs','おすすめ求人','search','#'],
-      ['matching','マッチング結果','users','#'],
-      ['aptitude','適性診断','doc','#'],
-      ['status','選考状況','clip','#'],
-      ['message','メッセージ','chat','#'],
-      ['saved','保存した求人','bag','#'],
-      ['profile','プロフィール','users','#'],
-      ['settings','設定','gear','#'],
+      ['jobs','おすすめ求人','search','/home.html#jobrecs'],
+      ['aptitude','AIキャリア診断','doc','/home.html#aiseeker'],
     ], card:['life','キャリアサポート','面談や使い方の相談はこちら'],
       user:['佐藤 美咲','プロフィール充足率 88%'] },
   };
@@ -66,7 +60,10 @@
     const nav = cfg.items.map(([key,label,icon,href])=>{
       const active = key===opt.active ? ' active':'';
       let h = href;
-      if(role==='seeker' && href==='/home.html' && idq) h = '/home.html'+idq;
+      if(role==='seeker' && href.startsWith('/home.html') && idq){
+        const hash = href.includes('#') ? href.slice(href.indexOf('#')) : '';
+        h = '/home.html' + idq + hash;
+      }
       return `<a class="${active.trim()}" href="${h}">${svg(icon)}<span>${label}</span></a>`;
     }).join('');
     const [un,us] = opt.user || cfg.user;
