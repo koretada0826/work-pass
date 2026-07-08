@@ -5,6 +5,19 @@ const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
 function hasKey() { return !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim()); }
 
+// AI出力のスコアは0〜100にクランプ（プロンプトインジェクションや異常値対策）
+const clampScore = v => { const n = Math.round(Number(v)); return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 0; };
+function sanitizeMatches(parsed, idKey) {
+  if (!Array.isArray(parsed)) return [];
+  return parsed.filter(m => m && m[idKey] != null).map(m => {
+    const o = { [idKey]: m[idKey], score: clampScore(m.score),
+      reasons: Array.isArray(m.reasons) ? m.reasons.slice(0, 6).map(x => String(x).slice(0, 300)) : [],
+      verdict: typeof m.verdict === 'string' ? m.verdict.slice(0, 200) : '' };
+    if (m.axis && typeof m.axis === 'object') o.axis = m.axis;
+    return o;
+  });
+}
+
 const TEST_LABEL = { general:'一般常識テスト', sales:'営業適性診断', communication:'コミュニケーション診断', personality:'性格診断', manners:'ビジネスマナー診断' };
 
 function candidateText(c) {
@@ -147,7 +160,7 @@ scoreの高い順に並べてください。`;
   const j = await res.json();
   const text = j?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   let parsed; try { parsed = JSON.parse(text); } catch { const e = new Error('PARSE'); e.detail = text.slice(0,300); throw e; }
-  return parsed;
+  return sanitizeMatches(parsed, 'candidate_id');
 }
 
 // 1回のAPI呼び出しで、1求職者に対する全求人の相性をランキング（求職者向け「おすすめ求人」用）
@@ -178,7 +191,7 @@ scoreの高い順に並べてください。`;
   const j = await res.json();
   const text = j?.candidates?.[0]?.content?.parts?.[0]?.text || '';
   let parsed; try { parsed = JSON.parse(text); } catch { const e = new Error('PARSE'); e.detail = text.slice(0,300); throw e; }
-  return parsed;
+  return sanitizeMatches(parsed, 'job_id');
 }
 
 module.exports = { analyzeCandidate, matchJobToCandidates, matchCandidateToJobs, hasKey, MODEL };

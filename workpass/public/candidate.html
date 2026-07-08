@@ -11,7 +11,8 @@
 <script src="/layout.js"></script>
 <script>
 const id = new URLSearchParams(location.search).get('id');
-const esc = s => (s==null||s==='')?'<span class="muted">-</span>':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+if(!/^\d+$/.test(String(id))){ location.replace('/seekers.html'); throw 0; }
+const esc = s => (s==null||s==='')?'<span class="muted">-</span>':String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
 const escA = s => String(s==null?'':s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c])); // 属性/textarea用
 const num = v => Number.isFinite(Number(v)) ? Number(v) : '-';
 const days = j => { try{const a=JSON.parse(j||'[]');return a.length?a.join('・'):null}catch{return j} };

@@ -12,6 +12,7 @@
 <script>
 const params = new URLSearchParams(location.search);
 const id = params.get('id');
+if(!/^\d+$/.test(String(id))){ location.replace('/register.html'); throw 0; }
 
 const gauge = (v,color) => `<div class="gauge" style="background:conic-gradient(${color} ${v}%, #e8eef5 0)"><div class="hole"><b>${v}<small>%</small></b></div></div>`;
 
@@ -41,7 +42,7 @@ function build(cand){
   const apt = hasTests;
 
   const welcome = `
-  <div class="grid" style="grid-template-columns:1.7fr 1fr 1fr">
+  <div class="grid welcome-grid" style="grid-template-columns:1.7fr 1fr 1fr">
     <div class="card">
       <div style="display:flex;align-items:center;gap:14px">
         <span class="av" style="width:56px;height:56px;border-radius:50%;background:#e8f0ff;display:inline-block"></span>
@@ -110,7 +111,7 @@ function build(cand){
     <div style="height:18px"></div>
     <div class="card" id="aiseeker" style="margin-bottom:18px"></div>
     <div class="grid g-2">
-      <div style="display:flex;flex-direction:column;gap:18px">${jobCards}<div class="grid" style="grid-template-columns:1.4fr 1fr">${statusCard}${todayCard}</div></div>
+      <div style="display:flex;flex-direction:column;gap:18px">${jobCards}<div class="grid g-2">${statusCard}${todayCard}</div></div>
       <div style="display:flex;flex-direction:column;gap:18px">${aptCard}${savedCard}${todoCard}</div>
     </div>`;
   if (id) { loadSeekerAI(cand); loadJobRecs(); }

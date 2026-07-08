@@ -43,6 +43,7 @@
 <script>
 document.getElementById('wiz').innerHTML = wizHeader(3);
 const id=new URLSearchParams(location.search).get('id');
+if(!/^\d+$/.test(String(id))){ location.replace('/register.html'); throw 0; }
 document.getElementById('back').href='/tests.html?id='+id;
 document.getElementById('days').innerHTML=['月','火','水','木','金','土','日'].map(d=>`<label><input type="checkbox" value="${d}">${d}</label>`).join('');
 // 希望勤務地：在宅＋都道府県

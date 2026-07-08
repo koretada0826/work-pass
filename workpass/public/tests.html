@@ -43,6 +43,7 @@
 <script>
 document.getElementById('wiz').innerHTML = wizHeader(2);
 const id = new URLSearchParams(location.search).get('id');
+if(!/^\d+$/.test(String(id))){ location.replace('/register.html'); throw 0; }
 const ICONS={
   book:['#e8eeff','#5b6ef5','<path d="M4 5a2 2 0 012-2h5v16H6a2 2 0 00-2 2zM20 5a2 2 0 00-2-2h-5v16h5a2 2 0 012 2z"/>'],
   target:['#e9f7ec','#3ea765','<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3M22 12h-3"/>'],

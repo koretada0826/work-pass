@@ -18,6 +18,13 @@ const PUBLIC = path.join(__dirname, 'public');
 const MIME = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8',
   '.js':'text/javascript; charset=utf-8', '.json':'application/json; charset=utf-8' };
 
+// 文字列フィールドの過大入力を防ぐ（AIトークン浪費・DoS対策）。ネストした配列/オブジェクトも再帰的に丸める。
+function capStrings(obj, max = 5000) {
+  if (typeof obj === 'string') return obj.length > max ? obj.slice(0, max) : obj;
+  if (Array.isArray(obj)) return obj.slice(0, 50).map(v => capStrings(v, max));
+  if (obj && typeof obj === 'object') { for (const k of Object.keys(obj)) obj[k] = capStrings(obj[k], max); return obj; }
+  return obj;
+}
 function send(res, code, body, type = 'application/json; charset=utf-8') {
   res.writeHead(code, { 'Content-Type': type });
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
@@ -50,7 +57,7 @@ async function handle(req, res) {
     if (p === '/api/candidates' && req.method === 'GET') return send(res, 200, await db.listCandidates());
     if (p === '/api/stats' && req.method === 'GET') return send(res, 200, await db.getStats());
     if (p === '/api/candidates' && req.method === 'POST') {
-      const body = await readBody(req);
+      const body = capStrings(await readBody(req));
       if (!body.name || typeof body.name !== 'string' || !body.name.trim()) return send(res, 400, { error: '氏名は必須です' });
       const clampInt = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, Math.round(n))) : null; };
       if (body.age != null) body.age = clampInt(body.age, 15, 99);
@@ -66,7 +73,7 @@ async function handle(req, res) {
       return c ? send(res, 200, c) : send(res, 404, { error: 'not found' });
     }
     if ((m = p.match(/^\/api\/candidates\/(\d+)$/)) && (req.method === 'PATCH' || req.method === 'POST')) {
-      const body = await readBody(req);
+      const body = capStrings(await readBody(req));
       await db.updateCandidate(Number(m[1]), body);
       return send(res, 200, { ok: true });
     }
@@ -76,7 +83,7 @@ async function handle(req, res) {
       return t ? send(res, 200, t) : send(res, 404, { error: 'unknown test' });
     }
     if ((m = p.match(/^\/api\/candidates\/(\d+)\/tests\/([a-z]+)$/)) && req.method === 'POST') {
-      const body = await readBody(req);
+      const body = capStrings(await readBody(req));
       const result = Q.scoreTest(m[2], body.answers);
       if (!result) return send(res, 404, { error: 'unknown test' });
       await db.saveTestResult(Number(m[1]), m[2], result);
@@ -120,8 +127,11 @@ async function handle(req, res) {
     }
     if (p === '/api/jobs' && req.method === 'GET') return send(res, 200, await db.listJobs());
     if (p === '/api/jobs' && req.method === 'POST') {
-      const body = await readBody(req);
+      const body = capStrings(await readBody(req));
       if (!body.title || !String(body.title).trim()) return send(res, 400, { error: '求人職種は必須です' });
+      const clampInt = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, Math.round(n))) : null; };
+      if (body.salary_min != null && body.salary_min !== '') body.salary_min = clampInt(body.salary_min, 0, 100000);
+      if (body.salary_max != null && body.salary_max !== '') body.salary_max = clampInt(body.salary_max, 0, 100000);
       const smin = Number(body.salary_min), smax = Number(body.salary_max);
       if (Number.isFinite(smin) && Number.isFinite(smax) && smin > smax) return send(res, 400, { error: '年収の下限が上限を超えています' });
       const id = await db.createJob(body);

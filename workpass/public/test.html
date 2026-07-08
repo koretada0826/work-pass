@@ -21,6 +21,8 @@
 <script>
 const params=new URLSearchParams(location.search);
 const id=params.get('id'), key=params.get('key');
+if(!/^\d+$/.test(String(id))){ location.replace('/register.html'); throw 0; }
+if(!/^[a-z]+$/.test(String(key))){ location.replace('/tests.html?id='+id); throw 0; }
 document.getElementById('back').href='/tests.html?id='+id;
 const scale=[['1','違う'],['2','やや違う'],['3','どちらとも'],['4','やや近い'],['5','近い']];
 let T=null;
