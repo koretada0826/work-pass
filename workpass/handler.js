@@ -102,6 +102,22 @@ async function handle(req, res) {
       }
     }
     if (p === '/api/ai/status' && req.method === 'GET') return send(res, 200, { enabled: ai.hasKey(), model: ai.MODEL });
+    // 求職者 → おすすめ求人（1求職者×全求人をAIで相性順に）
+    if ((m = p.match(/^\/api\/candidates\/(\d+)\/matches$/)) && req.method === 'POST') {
+      const c = await db.getCandidate(Number(m[1]));
+      if (!c) return send(res, 404, { error: 'not found' });
+      const jobs = await db.listJobs();
+      if (!jobs.length) return send(res, 200, { matches: [], jobs: {} });
+      try {
+        const matches = await ai.matchCandidateToJobs(c, jobs);
+        const map = {}; jobs.forEach(j => { map[j.id] = { title:j.title, company_name:j.company_name, salary_min:j.salary_min, salary_max:j.salary_max, location:j.location, remote:j.remote, company_tags:j.company_tags, job_category:j.job_category }; });
+        return send(res, 200, { matches, jobs: map });
+      } catch (e) {
+        if (e.code === 'NO_KEY') return send(res, 400, { error:'NO_KEY', message:'GEMINI_API_KEY が未設定です。' });
+        console.error('[candidate-matches]', e.message, e.detail || '');
+        return send(res, 502, { error:'AI_ERROR', message:'求人マッチングに失敗しました。時間をおいて再度お試しください。' });
+      }
+    }
     if (p === '/api/jobs' && req.method === 'GET') return send(res, 200, await db.listJobs());
     if (p === '/api/jobs' && req.method === 'POST') {
       const body = await readBody(req);

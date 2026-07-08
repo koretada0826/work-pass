@@ -70,13 +70,9 @@ function build(cand){
   </div>`;
 
   const jobCards = `
-  <div class="card">
+  <div class="card" id="jobrecs">
     <div class="card-h"><span class="hi">👍</span><span class="ct">あなたにおすすめの求人</span></div>
-    <div style="text-align:center;padding:34px 14px">
-      <div style="font-size:34px">🗂️</div>
-      <div style="font-size:15px;font-weight:800;margin-top:6px">現在ご紹介できる求人はまだありません</div>
-      <p class="note" style="max-width:440px;margin:8px auto 0">プロフィールと診断のご登録ありがとうございます。求人が追加され次第、あなたの適性・価値観・目標をもとにAIが相性の良い求人を自動でご提案します。</p>
-    </div>
+    <p class="muted" id="jobrecsmsg">求人との相性を読み込んでいます…</p>
   </div>`;
 
   const aptCard = `
@@ -125,7 +121,40 @@ function build(cand){
       <div style="display:flex;flex-direction:column;gap:18px">${jobCards}<div class="grid" style="grid-template-columns:1.4fr 1fr">${statusCard}${todayCard}</div></div>
       <div style="display:flex;flex-direction:column;gap:18px">${aptCard}${savedCard}${todoCard}</div>
     </div>`;
-  if (id) loadSeekerAI(cand);
+  if (id) { loadSeekerAI(cand); loadJobRecs(); }
+}
+
+async function loadJobRecs(){
+  const el=document.getElementById('jobrecs'); if(!el||!id) return;
+  const head='<div class="card-h"><span class="hi">👍</span><span class="ct">あなたにおすすめの求人</span></div>';
+  const empty=(msg)=>{ el.innerHTML=head+`<div style="text-align:center;padding:30px 14px"><div style="font-size:32px">🗂️</div><p class="note" style="max-width:440px;margin:8px auto 0">${msg}</p></div>`; };
+  try{
+    const jobs=await fetch('/api/jobs').then(r=>r.json());
+    if(!jobs.length){ empty('求人が追加され次第、あなたの適性・価値観・目標をもとにAIが相性の良い求人をご提案します。'); return; }
+    el.innerHTML=head+'<p class="muted">AIがあなたと求人の相性を分析しています…（10〜20秒）</p>';
+    const r=await fetch('/api/candidates/'+id+'/matches',{method:'POST'});
+    const j=await r.json();
+    if(!r.ok||!j.matches){ empty('ただいま混み合っています。時間をおいて再度お開きください。'); return; }
+    if(!j.matches.length){ empty('現在ご紹介できる求人はまだありません。'); return; }
+    const num=v=>Number.isFinite(Number(v))?Number(v):'-';
+    const cards=j.matches.map(m=>{
+      const job=j.jobs[m.job_id]||{}; const sc=num(m.score);
+      const tags=(()=>{try{return JSON.parse(job.company_tags||'[]')}catch{return[]}})();
+      return `<div class="jobcard" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="gauge" style="background:conic-gradient(#22c55e ${sc}%, #e8eef5 0);flex:none"><div class="hole"><b>${sc}<small>%</small></b></div></div>
+          <div style="flex:1">
+            <div style="font-weight:800;font-size:15px">${escS(job.title)} <span class="note">${escS(job.company_name)}</span></div>
+            <div class="note">${job.salary_min||'-'}〜${job.salary_max||'-'}万円 ／ ${escS(job.location)||'-'} ／ ${escS(job.remote)||'-'}</div>
+            <div style="margin-top:4px">${(tags||[]).slice(0,4).map(t=>`<span class="chip">${escS(t)}</span>`).join('')}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-weight:700;color:var(--brand)">${escS(m.verdict||'')}</div>
+        <ul style="margin:6px 0 0;padding-left:18px">${(m.reasons||[]).map(x=>`<li>${escS(x)}</li>`).join('')}</ul>
+      </div>`;
+    }).join('');
+    el.innerHTML=head+cards;
+  }catch(e){ empty('求人の読み込みに失敗しました。'); }
 }
 
 const escS = s => (s==null||s==='')?'':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
