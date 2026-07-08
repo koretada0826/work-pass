@@ -140,13 +140,24 @@ async function loadJobRecs(force){
     if(!j.matches.length){ setKpi(total,0); empty('現在ご紹介できる求人はまだありません。'); return; }
     const num=v=>Number.isFinite(Number(v))?Number(v):'-';
     setKpi(total, j.matches.filter(m=>Number(m.score)>=70).length);
-    const cards=j.matches.map(m=>{
+    // マッチ度が高い求人があれば「おすすめ」、無ければ提案ベースの見せ方に切り替える
+    const TH=60;
+    const sorted=[...j.matches].sort((a,b)=>Number(b.score)-Number(a.score));
+    const good=sorted.filter(m=>Number(m.score)>=TH);
+    const hasGood=good.length>0;
+    const list=hasGood?good:sorted;
+    const title=hasGood?'あなたにおすすめの求人':'こんなお仕事もあります';
+    const icon=hasGood?'👍':'💡';
+    const headFinal='<div class="card-h"><span class="hi">'+icon+'</span><span class="ct">'+title+'</span><a class="more" href="#" style="margin-left:auto" onclick="event.preventDefault();loadJobRecs(true)">最新の状態に更新</a></div>';
+    const intro=hasGood?'':'<p class="note" style="margin:2px 0 14px">現在、条件に高く一致する求人はまだありませんが、ご参考までにこのようなお仕事をご紹介します。新しい求人が入り次第、相性の良いものを優先してご案内します。</p>';
+    const cards=list.map(m=>{
       const jid=String(m.job_id).replace(/[^0-9]/g,''); const job=j.jobs[jid]||j.jobs[m.job_id]||{}; const sc=num(m.score);
       if(!job.title) return '';
       const tags=(()=>{try{return JSON.parse(job.company_tags||'[]')}catch{return[]}})();
+      const gc=(sc>=70?'#22c55e':(sc>=50?'#f5b400':'#94a3b8'));
       return `<div class="jobcard" style="margin-bottom:12px">
         <div style="display:flex;align-items:center;gap:14px">
-          <div class="gauge" style="background:conic-gradient(#22c55e ${sc}%, #e8eef5 0);flex:none"><div class="hole"><b>${sc}<small>%</small></b></div></div>
+          <div class="gauge" style="background:conic-gradient(${gc} ${sc}%, #e8eef5 0);flex:none"><div class="hole"><b>${sc}<small>%</small></b></div></div>
           <div style="flex:1">
             <div style="font-weight:800;font-size:15px">${escS(job.title)} <span class="note">${escS(job.company_name)}</span></div>
             <div class="note">${job.salary_min||'-'}〜${job.salary_max||'-'}万円 ／ ${escS(job.location)||'-'} ／ ${escS(job.remote)||'-'}</div>
@@ -157,7 +168,7 @@ async function loadJobRecs(force){
         <ul style="margin:6px 0 0;padding-left:18px">${(m.reasons||[]).map(x=>`<li>${escS(x)}</li>`).join('')}</ul>
       </div>`;
     }).join('');
-    el.innerHTML=head+cards;
+    el.innerHTML=headFinal+intro+cards;
   }catch(e){ empty('求人の読み込みに失敗しました。'); }
 }
 
