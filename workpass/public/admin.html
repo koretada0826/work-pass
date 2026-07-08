@@ -74,7 +74,6 @@ Promise.all([
       <span class="ct">求職者一覧</span><a class="more" href="/seekers.html">すべて見る ›</a></div>
     <table class="tbl"><thead><tr><th>氏名</th><th>希望職種</th><th>適性</th><th>希望年収</th><th>診断進捗</th><th>ステータス</th></tr></thead>
     <tbody>${listRows}</tbody></table>
-    <div class="pager"><a>‹</a><a class="on">1</a><a>2</a><a>3</a><a>…</a><a>次へ ›</a></div>
   </div>`;
 
   // 本日の面談予定（面談機能は準備中）
@@ -92,9 +91,9 @@ Promise.all([
   const valCard = `
   <div class="card">
     <div class="card-h"><span class="hi"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-      <span class="ct">価値観分布</span><span class="note">（全求職者）</span><a class="more" href="#">すべて見る ›</a></div>
+      <span class="ct">価値観分布</span><span class="note">（価値観を登録した求職者）</span></div>
     <div style="display:flex;align-items:center;gap:22px">
-      <div class="donut" style="${donutStyle}"><div class="hole"><b>${stats.total.toLocaleString()}</b><span>人</span></div></div>
+      <div class="donut" style="${donutStyle}"><div class="hole"><b>${(stats.distributionTotal||0).toLocaleString()}</b><span>人</span></div></div>
       <div class="legend" style="flex:1">
         ${d.map(x=>`<div class="li"><span class="k" style="background:${x.color}"></span><span>${x.label}</span><span class="v">${x.percent}%</span></div>`).join('')}
       </div>

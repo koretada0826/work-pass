@@ -154,7 +154,7 @@ function saveAnalysis(id, analysis) {
 }
 
 function updateCandidate(id, fields) {
-  const allow = new Set(CAND_FIELDS);
+  const allow = new Set([...CAND_FIELDS, 'status', 'iv_impression','iv_comm','iv_proactive','iv_personality','iv_comment','iv_evaluator','iv_date']);
   const sets = [], vals = [];
   for (const [k,v] of Object.entries(fields||{})) { if (allow.has(k)) { sets.push(`${k}=?`); vals.push(v ?? null); } }
   if (!sets.length) return;

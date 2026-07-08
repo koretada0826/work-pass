@@ -27,7 +27,7 @@
   </div>
 
   <div class="card" style="margin-bottom:16px">
-    <div class="card-h"><span class="ct">職歴</span><span class="note" style="margin-left:8px">複数追加できます</span></div>
+    <div class="card-h"><span class="ct">職歴</span><span class="note" style="margin-left:8px">複数追加できます（未経験・職歴なしの方は入力不要です）</span></div>
     <div id="histories"></div>
     <button type="button" class="btn btn-ghost sm" onclick="addHistory()">＋ 職歴を追加</button>
   </div>
@@ -100,7 +100,7 @@ function addHistory(){
     <button type="button" class="btn btn-ghost sm" onclick="this.parentNode.remove()">この職歴を削除</button>`;
   document.getElementById('histories').appendChild(div);
 }
-addHistory();
+// 初期表示では職歴カードを出さない（未経験者が「＋職歴を追加」を押さなくても登録できるように）
 
 document.getElementById('form').addEventListener('submit', async (e)=>{
   e.preventDefault();

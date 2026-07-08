@@ -74,14 +74,11 @@
         <nav class="nav">${nav}</nav>
         <div class="side-card"><div class="t">${svg(cfg.card[0])}${cfg.card[1]}</div><div class="d">${cfg.card[2]}</div></div>
       </aside>`;
-    const searchPh = role==='admin' ? '検索（求職者、企業、求人など）' : '職種・勤務地・企業名で検索';
     const av = uav ? `<img class="av" src="${uav}">` : `<span class="av"></span>`;
     const top = `
       <div class="top">
         <h1>${opt.title||''}</h1>
         <div class="sp"></div>
-        <div class="search"><input placeholder="${searchPh}"><span class="si"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">${IC.search}</svg></span></div>
-        <div class="bell"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8">${IC.bell}</svg><span class="dot">3</span></div>
         <div class="userchip">${av}<div><div class="nm">${un}</div><div class="sub">${us}</div></div></div>
       </div>`;
     const root = document.getElementById('app');
