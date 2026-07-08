@@ -40,10 +40,8 @@
 
   <div class="card" style="margin-bottom:16px">
     <div class="card-h"><span class="ct">キャリア</span></div>
-    <div class="grid2">
-      <div class="field"><label class="fl">希望職種 <span class="req">必須</span></label><select name="career_job" required></select></div>
-      <div class="field"><label class="fl">希望業界 <span class="req">必須</span></label><select name="career_industry" required></select></div>
-    </div>
+    <div class="field"><label class="fl">希望職種 <span class="req">必須</span> <span class="note" style="font-weight:400">（複数選択できます）</span></label><div class="days" id="cj_chips"></div></div>
+    <div class="field"><label class="fl">希望業界 <span class="req">必須</span> <span class="note" style="font-weight:400">（複数選択できます）</span></label><div class="days" id="ci_chips"></div></div>
     <div class="field"><label class="fl">3年後の目標 <span class="req">必須</span></label>
       <textarea name="goal_3y" required placeholder="将来のイメージを自由にお書きください"></textarea></div>
     <div class="field"><label class="fl">5年後の目標 <span class="req">必須</span></label>
@@ -70,8 +68,12 @@ document.getElementById('skillgrid').innerHTML = skills.map(([n,l])=>`<div class
 const INDUSTRIES=['IT・ソフトウェア','SaaS・Web','通信','電機・機械メーカー','食品・消費財メーカー','自動車','化学・素材','医薬・医療機器','建設・不動産','銀行・証券','保険','商社','小売・流通','EC・通販','飲食','旅行・宿泊','運輸・物流','人材・派遣','広告・マーケティング','コンサルティング','教育','医療・介護・福祉','士業・専門サービス','エネルギー・インフラ','農林水産','公務・団体','特にこだわらない','その他'];
 const JOBTYPES=['営業（新規開拓）','営業（既存・ルート）','インサイドセールス','フィールドセールス','カスタマーサクセス','販売・接客','カスタマーサポート／コールセンター','マーケティング','広報・PR','事業企画・経営企画','商品・サービス企画','一般事務','営業事務','経理・財務','人事・労務','総務','法務','購買・調達','生産・品質管理','ITエンジニア（開発）','インフラ・ネットワーク','データ分析','デザイナー・クリエイティブ','Webディレクター','コンサルタント','研究・開発','医療・看護・介護','教育・講師','物流・倉庫','製造・技術（現場）','建築・土木','特にこだわらない','その他'];
 const optList=arr=>'<option value="" disabled selected>選択してください</option>'+arr.map(v=>`<option value="${v}">${v}</option>`).join('');
-document.querySelector('[name=career_job]').innerHTML=optList(JOBTYPES);
-document.querySelector('[name=career_industry]').innerHTML=optList(INDUSTRIES);
+// 希望職種・希望業界は複数選択（チップ）
+const chipHTML=arr=>arr.map(v=>`<label class="chipbtn" data-val="${v}">${v}</label>`).join('');
+document.getElementById('cj_chips').innerHTML=chipHTML(JOBTYPES);
+document.getElementById('ci_chips').innerHTML=chipHTML(INDUSTRIES);
+document.querySelectorAll('.chipbtn').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
+const getChipsJoined=id=>[...document.querySelectorAll('#'+id+' .chipbtn.on')].map(e=>e.dataset.val).join('／');
 
 function addHistory(){
   const div=document.createElement('div');
@@ -98,6 +100,10 @@ document.getElementById('form').addEventListener('submit', async (e)=>{
     const o={}; h.querySelectorAll('[data-f]').forEach(el=>o[el.dataset.f]= el.value||null);
     if(o.years!=null) o.years=Number(o.years); return o;
   }).filter(o=>o.industry||o.job_type);
+  // 希望職種・希望業界（複数選択チップ）
+  data.career_job = getChipsJoined('cj_chips') || null;
+  data.career_industry = getChipsJoined('ci_chips') || null;
+  if(!data.career_job || !data.career_industry){ btn.disabled=false; const t=document.getElementById('toast'); t.textContent='希望職種・希望業界をそれぞれ1つ以上選んでください'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); return; }
   let j;
   try{ const r=await fetch('/api/candidates',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); j=await r.json(); if(!r.ok) throw new Error(j.error||'save failed'); }
   catch(err){ btn.disabled=false; const t=document.getElementById('toast'); t.textContent='保存に失敗しました。時間をおいて再度お試しください。'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); return; }
