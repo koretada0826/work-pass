@@ -35,7 +35,7 @@
       ['jobs','おすすめ求人','search','/home.html#jobrecs'],
       ['aptitude','AIキャリア診断','doc','/home.html#aiseeker'],
     ], card:['life','キャリアサポート','面談や使い方の相談はこちら'],
-      user:['佐藤 美咲','プロフィール充足率 88%'] },
+      user:['マイページ',''] },
   };
   function svg(name){ return '<span class="ic"><svg viewBox="0 0 24 24" width="20" height="20">'+(IC[name]||'')+'</svg></span>'; }
 

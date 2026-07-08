@@ -13,16 +13,35 @@
     <div style="width:76px;height:76px;border-radius:50%;background:var(--good-bg);display:grid;place-items:center;margin:0 auto 8px">
       <svg viewBox="0 0 24 24" width="40" fill="none" stroke="#16a34a" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div>
     <h1 style="font-size:25px">ご登録ありがとうございました</h1>
-    <p class="lead" style="margin-top:12px">プロフィール・5つの診断・希望条件の登録が完了しました。内容を確認のうえ、担当者よりご連絡いたします。あなたに合ったお仕事をご提案できるよう努めます。</p>
+    <p class="lead" style="margin-top:12px">プロフィール・6つの診断・希望条件の登録が完了しました。内容を確認のうえ、担当者よりご連絡いたします。あなたに合ったお仕事をご提案できるよう努めます。</p>
     <div id="cta" style="margin-top:24px"></div>
-    <p class="note" style="margin-top:16px">この画面は閉じていただいて大丈夫です。</p>
+
+    <div class="card" style="background:#fff7e6;border-color:#f6e2b8;text-align:left;margin-top:22px">
+      <div style="font-weight:800;color:#b7791f;margin-bottom:6px">📌 このリンクを保存してください</div>
+      <p class="note" style="margin:0 0 8px">あとで診断結果（AIキャリア診断・おすすめ求人）を見るときに使う、<b>あなた専用のマイページURL</b>です。ブックマークやメモに保存してください。</p>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="mylink" readonly style="flex:1;font-size:13px" onclick="this.select()">
+        <button class="btn btn-ghost sm" id="copybtn">コピー</button>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:14px">この画面は閉じていただいて大丈夫です（上のリンクを保存しておけば、いつでも結果を見られます）。</p>
   </div>
 </div>
+<div class="toast" id="toast"></div>
 <script src="/layout.js"></script>
 <script>
 document.getElementById('wiz').innerHTML = wizHeader(5);
 const id=new URLSearchParams(location.search).get('id');
-if(id) document.getElementById('cta').innerHTML=`<a class="btn btn-primary lg" href="/home.html?id=${id}">マイページ（ホーム）を見る　›</a>`;
+if(id){
+  const url = location.origin + '/home.html?id=' + id;
+  document.getElementById('cta').innerHTML=`<a class="btn btn-primary lg" href="/home.html?id=${id}">マイページ（ホーム）を見る　›</a>`;
+  document.getElementById('mylink').value = url;
+  document.getElementById('copybtn').addEventListener('click', async ()=>{
+    try{ await navigator.clipboard.writeText(url); }catch{ document.getElementById('mylink').select(); document.execCommand('copy'); }
+    const t=document.getElementById('toast'); t.textContent='リンクをコピーしました'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800);
+  });
+}
 </script>
 </body>
 </html>

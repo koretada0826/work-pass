@@ -58,7 +58,8 @@ async function run(){
     if(!r.ok){ box.innerHTML=`<div class="card"><p style="color:#d14343">${esc(j.message||'分析に失敗しました')}</p></div>`; return; }
     if(!j.matches.length){ box.innerHTML='<div class="card"><p class="muted">対象の求職者がいません。</p></div>'; return; }
     box.innerHTML = j.matches.map(m=>{
-      const c=j.candidates[m.candidate_id]||{}; const ax=m.axis||{};
+      const cid=String(m.candidate_id).replace(/[^0-9]/g,''); const c=j.candidates[cid]||j.candidates[m.candidate_id]||{}; const ax=m.axis||{};
+      if(!c.name) return '';
       const bar=(l,v)=>`<div class="barrow" style="grid-template-columns:88px 1fr 34px"><div class="bl">${l}</div><div class="track"><i style="width:${v||0}%"></i></div><div class="bv">${v??'-'}</div></div>`;
       return `<div class="card" style="margin-bottom:14px">
         <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">

@@ -150,8 +150,8 @@ async function handle(req, res) {
     if (req.method === 'GET') return serveStatic(res, p);
     return send(res, 405, { error: 'method not allowed' });
   } catch (e) {
-    console.error(e);
-    return send(res, 500, { error: String(e && e.message || e) });
+    console.error('[500]', e && (e.message || e), e && e.detail || '');
+    return send(res, 500, { error: 'サーバーエラーが発生しました。時間をおいて再度お試しください。' });
   }
 }
 
