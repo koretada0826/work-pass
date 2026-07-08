@@ -221,8 +221,9 @@ textarea{min-height:64px;resize:vertical}
 .infobar .col+.col{border-left:1px solid #e2e8f1;padding-left:22px}
 .infobar .ci{width:44px;height:44px;border-radius:50%;background:#e8f0ff;display:grid;place-items:center;color:var(--brand);flex:none}
 .infobar .t{font-weight:800}.infobar .d{font-size:12px;color:var(--mut)}
-.testgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px}
-@media(max-width:1100px){.testgrid{grid-template-columns:repeat(2,1fr)}.steps5{width:100%;margin:10px 0 0}}
+.testgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:760px){.testgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1100px){.steps5{width:100%;margin:10px 0 0}}
 .tcard{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 18px;position:relative;box-shadow:var(--shadow);transition:.15s}
 .tcard:hover{box-shadow:var(--shadow-h);transform:translateY(-2px)}
 .tcard .badge-n{position:absolute;top:14px;left:14px;width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center}
