@@ -68,12 +68,24 @@ document.getElementById('skillgrid').innerHTML = skills.map(([n,l])=>`<div class
 const INDUSTRIES=['IT・ソフトウェア','SaaS・Web','通信','電機・機械メーカー','食品・消費財メーカー','自動車','化学・素材','医薬・医療機器','建設・不動産','銀行・証券','保険','商社','小売・流通','EC・通販','飲食','旅行・宿泊','運輸・物流','人材・派遣','広告・マーケティング','コンサルティング','教育','医療・介護・福祉','士業・専門サービス','エネルギー・インフラ','農林水産','公務・団体','特にこだわらない','その他'];
 const JOBTYPES=['営業（新規開拓）','営業（既存・ルート）','インサイドセールス','フィールドセールス','カスタマーサクセス','販売・接客','カスタマーサポート／コールセンター','マーケティング','広報・PR','事業企画・経営企画','商品・サービス企画','一般事務','営業事務','経理・財務','人事・労務','総務','法務','購買・調達','生産・品質管理','ITエンジニア（開発）','インフラ・ネットワーク','データ分析','デザイナー・クリエイティブ','Webディレクター','コンサルタント','研究・開発','医療・看護・介護','教育・講師','物流・倉庫','製造・技術（現場）','建築・土木','特にこだわらない','その他'];
 const optList=arr=>'<option value="" disabled selected>選択してください</option>'+arr.map(v=>`<option value="${v}">${v}</option>`).join('');
-// 希望職種・希望業界は複数選択（チップ）
-const chipHTML=arr=>arr.map(v=>`<label class="chipbtn" data-val="${v}">${v}</label>`).join('');
-document.getElementById('cj_chips').innerHTML=chipHTML(JOBTYPES);
-document.getElementById('ci_chips').innerHTML=chipHTML(INDUSTRIES);
-document.querySelectorAll('.chipbtn').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
-const getChipsJoined=id=>[...document.querySelectorAll('#'+id+' .chipbtn.on')].map(e=>e.dataset.val).join('／');
+// 希望職種・希望業界＝複数選択ドロップダウン（開いてチェック→選択はタグ表示）
+function makeMultiSelect(mountId, options, placeholder){
+  const wrap=document.getElementById(mountId); wrap.className='msel';
+  wrap.innerHTML=`<div class="msel-box"><span class="msel-ph">${placeholder}</span></div><div class="msel-panel">${options.map(v=>`<label><input type="checkbox" value="${v}"> ${v}</label>`).join('')}</div>`;
+  const box=wrap.querySelector('.msel-box'), panel=wrap.querySelector('.msel-panel');
+  const render=()=>{
+    const sel=[...panel.querySelectorAll('input:checked')].map(i=>i.value);
+    box.innerHTML = sel.length ? sel.map(v=>`<span class="msel-tag">${v}<b data-v="${v}">×</b></span>`).join('') : `<span class="msel-ph">${placeholder}</span>`;
+    box.querySelectorAll('.msel-tag b').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const inp=panel.querySelector(`input[value="${b.dataset.v}"]`);if(inp){inp.checked=false;render();}}));
+  };
+  box.addEventListener('click',()=>{panel.classList.toggle('open');box.classList.toggle('open');});
+  panel.querySelectorAll('input').forEach(i=>i.addEventListener('change',render));
+  document.addEventListener('click',e=>{if(!wrap.contains(e.target)){panel.classList.remove('open');box.classList.remove('open');}});
+  wrap._get=()=>[...panel.querySelectorAll('input:checked')].map(i=>i.value);
+  return wrap;
+}
+const msJob=makeMultiSelect('cj_chips',JOBTYPES,'選択してください（複数可）');
+const msInd=makeMultiSelect('ci_chips',INDUSTRIES,'選択してください（複数可）');
 
 function addHistory(){
   const div=document.createElement('div');
@@ -101,8 +113,8 @@ document.getElementById('form').addEventListener('submit', async (e)=>{
     if(o.years!=null) o.years=Number(o.years); return o;
   }).filter(o=>o.industry||o.job_type);
   // 希望職種・希望業界（複数選択チップ）
-  data.career_job = getChipsJoined('cj_chips') || null;
-  data.career_industry = getChipsJoined('ci_chips') || null;
+  data.career_job = msJob._get().join('／') || null;
+  data.career_industry = msInd._get().join('／') || null;
   if(!data.career_job || !data.career_industry){ btn.disabled=false; const t=document.getElementById('toast'); t.textContent='希望職種・希望業界をそれぞれ1つ以上選んでください'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); return; }
   let j;
   try{ const r=await fetch('/api/candidates',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); j=await r.json(); if(!r.ok) throw new Error(j.error||'save failed'); }

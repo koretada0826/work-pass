@@ -196,6 +196,20 @@ textarea{min-height:64px;resize:vertical}
 .likert label b{display:block;font-size:16px}
 .likert input{display:none}
 
+/* ===== 複数選択ドロップダウン ===== */
+.msel{position:relative}
+.msel-box{min-height:44px;background:#fff;border:1px solid #dbe1ea;border-radius:10px;padding:8px 34px 8px 11px;cursor:pointer;display:flex;flex-wrap:wrap;gap:6px;align-items:center;position:relative}
+.msel-box::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--mut2);font-size:12px}
+.msel-box.open{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+.msel-ph{color:#9aa6b6;font-size:14px}
+.msel-tag{background:var(--brand-l);color:var(--brand);border-radius:6px;padding:3px 9px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.msel-tag b{cursor:pointer;font-weight:700;line-height:1}
+.msel-panel{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow-h);max-height:280px;overflow:auto;z-index:40;display:none;padding:4px}
+.msel-panel.open{display:block}
+.msel-panel label{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:8px;cursor:pointer;font-size:14px;margin:0}
+.msel-panel label:hover{background:#f3f6fc}
+.msel-panel input{width:auto}
+
 /* ===== 5-step wizard header ===== */
 .wizhead{background:#fff;border-bottom:1px solid var(--line);padding:16px 34px;display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
 .wizhead .steppill{background:var(--brand-l);color:var(--brand);font-weight:800;font-size:13px;padding:8px 16px;border-radius:10px}
