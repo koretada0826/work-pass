@@ -169,14 +169,25 @@ async function loadJobRecs(force){
             <div style="margin-top:4px">${(tags||[]).slice(0,4).map(t=>`<span class="chip">${escS(t)}</span>`).join('')}</div>
           </div>
         </div>
-        <div style="margin-top:8px;font-weight:700;color:var(--brand)">${escS(m.verdict||'')}</div>
-        <ul style="margin:6px 0 0;padding-left:18px">${(m.reasons||[]).map(x=>`<li>${escS(x)}</li>`).join('')}</ul>
+        ${detail(m, showNum)}
       </div>`;
     }).join('');
     el.innerHTML=headFinal+intro+cards;
   }catch(e){ empty('求人の読み込みに失敗しました。'); }
 }
 
+// 求人カードの説明部：おすすめ(高マッチ)はAI総評＋理由、提案(低マッチ)は前向きな魅力ポイントのみ
+function detail(m, showNum){
+  if(showNum){
+    return `<div style="margin-top:8px;font-weight:700;color:var(--brand)">${escS(m.verdict||'')}</div>
+      <ul style="margin:6px 0 0;padding-left:18px">${(m.reasons||[]).map(x=>`<li>${escS(x)}</li>`).join('')}</ul>`;
+  }
+  const pts=(m.appeal&&m.appeal.length)?m.appeal.slice(0,3):[];
+  return `<div style="margin-top:8px;font-weight:700;color:#0f9d58">✨ あなたにはこんなお仕事もあります</div>
+    ${pts.length
+      ? `<ul style="margin:6px 0 0;padding-left:18px">${pts.map(x=>`<li>${escS(x)}</li>`).join('')}</ul>`
+      : `<p class="note" style="margin:6px 0 0">あなたのご経験や希望をもとにご紹介しています。気になる場合は担当者にお気軽にご相談ください。</p>`}`;
+}
 const escS = s => (s==null||s==='')?'':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 const chipsS = arr => (arr||[]).map(x=>`<span class="chip">${escS(x)}</span>`).join(' ')||'<span class="muted">-</span>';
 const listS = arr => '<ul style="margin:6px 0 0;padding-left:18px">'+(arr||[]).map(x=>`<li>${escS(x)}</li>`).join('')+'</ul>';

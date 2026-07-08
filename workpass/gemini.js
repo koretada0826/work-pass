@@ -11,6 +11,7 @@ function sanitizeMatches(parsed, idKey) {
   if (!Array.isArray(parsed)) return [];
   return parsed.filter(m => m && m[idKey] != null).map(m => {
     const o = { [idKey]: m[idKey], score: clampScore(m.score),
+      appeal: Array.isArray(m.appeal) ? m.appeal.slice(0, 4).map(x => String(x).slice(0, 300)) : [],
       reasons: Array.isArray(m.reasons) ? m.reasons.slice(0, 6).map(x => String(x).slice(0, 300)) : [],
       verdict: typeof m.verdict === 'string' ? m.verdict.slice(0, 200) : '' };
     if (m.axis && typeof m.axis === 'object') o.axis = m.axis;
@@ -180,6 +181,7 @@ ${list.map(j => `[JOB_ID:${j.id}]\n${jobText(j)}`).join('\n---\n')}
 各求人について、次のJSON配列のみで日本語出力してください（コードブロックや説明文は不要）。scoreは0〜100の総合相性。
 [
   { "job_id": 数値, "score": 数値,
+    "appeal": ["この求職者がこの仕事で活かせる強み・成長機会・魅力を、マッチ度に関わらず必ず前向きな表現で2〜3点（否定・不足の指摘は書かない）", "..."],
     "reasons": ["この求職者にとって合う/合わない理由を具体的に(自由記述の内容にも触れる)", "..."],
     "verdict": "一言の総評" }
 ]
