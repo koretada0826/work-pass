@@ -114,22 +114,30 @@ function build(cand){
       <div style="display:flex;flex-direction:column;gap:18px">${jobCards}<div class="grid g-2">${statusCard}${todayCard}</div></div>
       <div style="display:flex;flex-direction:column;gap:18px">${aptCard}${savedCard}${todoCard}</div>
     </div>`;
-  if (id) { loadSeekerAI(cand); loadJobRecs(); }
+  if (id) { loadSeekerAI(cand).then(loadJobRecs).catch(loadJobRecs); } // AI呼び出しは直列化して同時実行による429を避ける
   if (location.hash) { const t=document.querySelector(location.hash); if(t) setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'start'}),300); }
 }
 
-async function loadJobRecs(){
+async function loadJobRecs(force){
   const el=document.getElementById('jobrecs'); if(!el||!id) return;
-  const head='<div class="card-h"><span class="hi">👍</span><span class="ct">あなたにおすすめの求人</span></div>';
+  const setKpi=(jc,hc)=>{const a=document.getElementById('kpi-jobs'),ad=document.getElementById('kpi-jobs-d'),b=document.getElementById('kpi-high'),bd=document.getElementById('kpi-high-d');if(a)a.innerHTML=jc+'<small>件</small>';if(ad)ad.textContent=jc?'登録求人から':'求人を準備中';if(b)b.innerHTML=hc+'<small>件</small>';if(bd)bd.textContent='相性70%以上';};
+  const head='<div class="card-h"><span class="hi">👍</span><span class="ct">あなたにおすすめの求人</span><a class="more" href="#" style="margin-left:auto" onclick="event.preventDefault();loadJobRecs(true)">最新の状態に更新</a></div>';
   const empty=(msg)=>{ el.innerHTML=head+`<div style="text-align:center;padding:30px 14px"><div style="font-size:32px">🗂️</div><p class="note" style="max-width:440px;margin:8px auto 0">${msg}</p></div>`; };
   try{
     const jobs=await fetch('/api/jobs').then(r=>r.json());
-    const setKpi=(jc,hc)=>{const a=document.getElementById('kpi-jobs'),ad=document.getElementById('kpi-jobs-d'),b=document.getElementById('kpi-high'),bd=document.getElementById('kpi-high-d');if(a)a.innerHTML=jc+'<small>件</small>';if(ad)ad.textContent=jc?'登録求人から':'求人を準備中';if(b)b.innerHTML=hc+'<small>件</small>';if(bd)bd.textContent='相性70%以上';};
     if(!jobs.length){ setKpi(0,0); empty('求人が追加され次第、あなたの適性・価値観・目標をもとにAIが相性の良い求人をご提案します。'); return; }
-    el.innerHTML=head+'<p class="muted">AIがあなたと求人の相性を分析しています…（10〜20秒）</p>';
-    const r=await fetch('/api/candidates/'+id+'/matches',{method:'POST'});
-    const j=await r.json();
-    if(!r.ok||!j.matches){ empty('ただいま混み合っています。時間をおいて再度お開きください。'); return; }
+    // 求人構成が変わらない限りはセッション内でキャッシュを使い、毎回のAI呼び出しを避ける
+    const sig=jobs.length+':'+Math.max(...jobs.map(x=>Number(x.id)||0));
+    const ck='wp_jobrecs_'+id;
+    let j=null;
+    if(!force){ try{ const cached=JSON.parse(sessionStorage.getItem(ck)||'null'); if(cached&&cached.sig===sig) j=cached.data; }catch{} }
+    if(!j){
+      el.innerHTML=head+'<p class="muted">AIがあなたと求人の相性を分析しています…（10〜20秒）</p>';
+      const r=await fetch('/api/candidates/'+id+'/matches',{method:'POST'});
+      j=await r.json();
+      if(!r.ok||!j.matches){ empty('ただいま混み合っています。時間をおいて「最新の状態に更新」をお試しください。'); return; }
+      try{ sessionStorage.setItem(ck, JSON.stringify({sig, data:j})); }catch{}
+    }
     if(!j.matches.length){ setKpi(jobs.length,0); empty('現在ご紹介できる求人はまだありません。'); return; }
     const num=v=>Number.isFinite(Number(v))?Number(v):'-';
     setKpi(jobs.length, j.matches.filter(m=>Number(m.score)>=70).length);
