@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>運営ログイン - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div class="obhead"><div class="logo">WORK <b>PASS</b></div><div class="tag">人ではなく、相性で採用する。</div></div>
+<div class="obwrap" style="max-width:420px">
+  <div class="card" style="padding:32px 26px">
+    <h1 style="font-size:22px;margin:0 0 4px">運営ログイン</h1>
+    <p class="note" style="margin:0 0 20px">採用担当の方専用の管理画面です。</p>
+    <form id="f">
+      <div class="field"><label class="fl">パスワード</label>
+        <input id="pw" type="password" autocomplete="current-password" required></div>
+      <div id="err" class="note" style="color:#dc2626;min-height:18px;margin:6px 0 0"></div>
+      <button class="btn btn-primary block lg" style="margin-top:14px" id="btn" type="submit">ログイン</button>
+    </form>
+    <p style="text-align:center;margin-top:16px"><a href="/" class="note">求職者としてご登録の方はこちら</a></p>
+  </div>
+</div>
+<script>
+const f=document.getElementById('f'), pw=document.getElementById('pw'), err=document.getElementById('err'), btn=document.getElementById('btn');
+f.addEventListener('submit', async (e)=>{
+  e.preventDefault(); err.textContent=''; btn.disabled=true; btn.textContent='確認中…';
+  try{
+    const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw.value})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok){ location.replace('/admin.html'); return; }
+    err.textContent = j.error || 'ログインに失敗しました。';
+  }catch(_){ err.textContent='通信エラーが発生しました。時間をおいて再度お試しください。'; }
+  btn.disabled=false; btn.textContent='ログイン';
+});
+</script>
+</body>
+</html>

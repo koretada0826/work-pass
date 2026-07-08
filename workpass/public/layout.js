@@ -55,8 +55,8 @@
     const role = opt.role||'admin';
     const cfg = NAV[role];
     const q = new URLSearchParams(location.search);
-    // ?id= を各ナビへ引き継ぐ（求職者ホーム用）
-    const idq = q.get('id') ? ('?id='+q.get('id')) : '';
+    // ?t=（本人トークン）を各ナビへ引き継ぐ（求職者ホーム用）
+    const idq = q.get('t') ? ('?t='+encodeURIComponent(q.get('t'))) : '';
     const nav = cfg.items.map(([key,label,icon,href])=>{
       const active = key===opt.active ? ' active':'';
       let h = href;
@@ -73,6 +73,7 @@
         <div class="brand"><div class="logo">WORK <b>PASS</b></div><div class="tag">人ではなく、相性で採用する。</div></div>
         <nav class="nav">${nav}</nav>
         <div class="side-card"><div class="t">${svg(cfg.card[0])}${cfg.card[1]}</div><div class="d">${cfg.card[2]}</div></div>
+        ${role==='admin' ? `<a href="#" id="wp-logout" class="note" style="display:block;padding:10px 14px;margin-top:8px">ログアウト</a>` : ''}
       </aside>`;
     const av = uav ? `<img class="av" src="${uav}">` : `<span class="av"></span>`;
     const top = `
@@ -85,9 +86,16 @@
     root.className='app';
     root.innerHTML = side + `<main><div id="top">${top}</div><div class="content" id="content">${opt.content||''}</div></main>`;
 
-    // 求職者ヘッダー：?id= があれば本人の氏名・プロフィール充足率を反映
-    if (role === 'seeker' && q.get('id')) {
-      fetch('/api/candidates/' + q.get('id')).then(r=>r.json()).then(c=>{
+    // 運営画面：未ログインならログイン画面へ誘導（APIは401を返すのでデータは出ない）
+    if (role === 'admin') {
+      fetch('/api/admin/me').then(r=>{ if (r.status === 401) location.replace('/admin-login.html'); }).catch(()=>{});
+      const lo = document.getElementById('wp-logout');
+      if (lo) lo.addEventListener('click', async (e)=>{ e.preventDefault(); try{ await fetch('/api/admin/logout',{method:'POST'}); }catch{} location.replace('/admin-login.html'); });
+    }
+
+    // 求職者ヘッダー：?t= があれば本人の氏名・プロフィール充足率を反映
+    if (role === 'seeker' && q.get('t')) {
+      fetch('/api/me/' + encodeURIComponent(q.get('t'))).then(r=>r.json()).then(c=>{
         if (!c || c.error || !c.name) return;
         const nm = root.querySelector('.userchip .nm'); if (nm) nm.textContent = c.name;
         const keys = ['name','age','nearest_station','contact','pref_location','pref_employment','career_job','career_industry','goal_3y','future_work','qualifications','val_growth'];

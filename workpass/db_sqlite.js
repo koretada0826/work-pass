@@ -2,6 +2,9 @@
 // WORK PASS - データ層（Node内蔵SQLite / 依存ゼロ）
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
+const crypto = require('crypto');
+// 求職者ごとの推測不可能な公開トークン（本人専用リンク用）
+function genToken() { return crypto.randomBytes(18).toString('base64url'); }
 
 const db = new DatabaseSync(path.join(__dirname, 'workpass.db'));
 db.exec('PRAGMA journal_mode = WAL;');
@@ -76,6 +79,9 @@ CREATE TABLE IF NOT EXISTS jobs (
   description TEXT, requirements TEXT
 );
 `);
+// candidates 追加カラム（既存DBにも安全に足す）
+try { db.exec('ALTER TABLE candidates ADD COLUMN token TEXT'); } catch {}
+try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_candidates_token ON candidates(token)'); } catch {}
 // jobs 追加カラム（既存DBにも安全に足す）
 for (const col of ['industry TEXT','company_size TEXT','company_tags TEXT','job_category TEXT',
   'work_time TEXT','overtime TEXT','holidays TEXT','benefits TEXT',
@@ -94,10 +100,11 @@ const CAND_FIELDS = [
 ];
 
 function createCandidate(data, histories) {
-  const cols = ['created_at','status', ...CAND_FIELDS];
+  const token = genToken();
+  const cols = ['created_at','status','token', ...CAND_FIELDS];
   const placeholders = cols.map(() => '?').join(',');
   const now = new Date().toISOString();
-  const vals = [now, '登録済', ...CAND_FIELDS.map(f => data[f] ?? null)];
+  const vals = [now, '登録済', token, ...CAND_FIELDS.map(f => data[f] ?? null)];
   const info = db.prepare(`INSERT INTO candidates (${cols.join(',')}) VALUES (${placeholders})`).run(...vals);
   const id = Number(info.lastInsertRowid);
   if (Array.isArray(histories)) {
@@ -107,7 +114,12 @@ function createCandidate(data, histories) {
       h.run(id, w.industry ?? null, w.job_type ?? null, w.years ?? null, w.achievement ?? null, w.resignation_reason ?? null);
     }
   }
-  return id;
+  return { id, token };
+}
+function getCandidateIdByToken(token) {
+  if (!token) return null;
+  const r = db.prepare('SELECT id FROM candidates WHERE token=?').get(token);
+  return r ? Number(r.id) : null;
 }
 
 function listCandidates() {
@@ -232,4 +244,4 @@ function getStats() {
   return { total, withAptitude:withApt, distributionTotal:counts.reduce((a,b)=>a+b,0), distribution };
 }
 
-module.exports = { createCandidate, listCandidates, getCandidate, updateCandidate, saveTestResult, saveInterview, saveAnalysis, getStats, createJob, listJobs, getJob, listCandidatesFull };
+module.exports = { createCandidate, getCandidateIdByToken, listCandidates, getCandidate, updateCandidate, saveTestResult, saveInterview, saveAnalysis, getStats, createJob, listJobs, getJob, listCandidatesFull };

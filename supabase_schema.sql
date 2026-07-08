@@ -5,6 +5,7 @@ create table if not exists candidates (
   id bigserial primary key,
   created_at timestamptz not null default now(),
   status text not null default '登録済',
+  token text unique,  -- 求職者本人の専用リンク用（推測不可トークン）
   name text, age int, nearest_station text, commute_range int, contact text,
   pref_location text, pref_days text, pref_time text, pref_employment text,
   pref_annual_income int, pref_monthly_income int, change_timing text,

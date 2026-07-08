@@ -119,9 +119,9 @@ document.getElementById('form').addEventListener('submit', async (e)=>{
   let j;
   try{ const r=await fetch('/api/candidates',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); j=await r.json(); if(!r.ok) throw new Error(j.error||'save failed'); }
   catch(err){ btn.disabled=false; const t=document.getElementById('toast'); t.textContent='保存に失敗しました。時間をおいて再度お試しください。'; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); return; }
-  if(!j||!j.id){ btn.disabled=false; const t=document.getElementById('toast'); t.textContent='保存に失敗しました（IDが取得できませんでした）'; t.classList.add('show'); return; }
+  if(!j||!j.token){ btn.disabled=false; const t=document.getElementById('toast'); t.textContent='保存に失敗しました（登録情報が取得できませんでした）'; t.classList.add('show'); return; }
   const t=document.getElementById('toast'); t.textContent='保存しました。適性診断・テストへ進みます…'; t.classList.add('show');
-  setTimeout(()=>location.href='/tests.html?id='+j.id, 800);
+  setTimeout(()=>location.href='/tests.html?t='+encodeURIComponent(j.token), 800);
 });
 </script>
 </body>

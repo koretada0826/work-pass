@@ -21,14 +21,14 @@
 <script src="/layout.js"></script>
 <script>
 document.getElementById('wiz').innerHTML = wizHeader(4);
-const id=new URLSearchParams(location.search).get('id');
-if(!/^\d+$/.test(String(id))){ location.replace('/register.html'); throw 0; }
-document.getElementById('back').href='/conditions.html?id='+id;
+const id=new URLSearchParams(location.search).get('t');
+if(!/^[A-Za-z0-9_-]{16,64}$/.test(String(id))){ location.replace('/register.html'); throw 0; }
+document.getElementById('back').href='/conditions.html?t='+id;
 const esc=s=>(s==null||s==='')?'<span class="muted">未入力</span>':String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 const days=j=>{try{const a=JSON.parse(j||'[]');return a.length?a.join('・'):null}catch{return j}};
 const kv=(k,v)=>`<div class="k">${k}</div><div>${esc(v)}</div>`;
 
-fetch('/api/candidates/'+id).then(r=>r.json()).then(c=>{
+fetch('/api/me/'+id).then(r=>r.json()).then(c=>{
   const t=c.tests||{};
   const testLabels={general:'一般常識テスト',sales:'営業適性診断',communication:'コミュニケーション診断',personality:'性格診断',manners:'ビジネスマナー診断'};
   const testHtml=Object.keys(testLabels).map(k=>`<div class="barrow"><div class="bl">${testLabels[k]}</div><div class="track"><i style="width:${t[k]?t[k].score:0}%"></i></div><div class="bv">${t[k]?t[k].score:'-'}</div></div>`).join('');
@@ -44,7 +44,7 @@ fetch('/api/candidates/'+id).then(r=>r.json()).then(c=>{
 });
 document.getElementById('finish').addEventListener('click', ()=>{
   const t=document.getElementById('toast'); t.textContent='登録が完了しました'; t.classList.add('show');
-  setTimeout(()=>location.href='/done.html?id='+id, 800);
+  setTimeout(()=>location.href='/done.html?t='+id, 800);
 });
 </script>
 </body>

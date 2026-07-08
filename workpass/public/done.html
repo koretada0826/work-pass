@@ -32,10 +32,10 @@
 <script src="/layout.js"></script>
 <script>
 document.getElementById('wiz').innerHTML = wizHeader(5);
-const id=new URLSearchParams(location.search).get('id');
-if(id){
-  const url = location.origin + '/home.html?id=' + id;
-  document.getElementById('cta').innerHTML=`<a class="btn btn-primary lg" href="/home.html?id=${id}">マイページ（ホーム）を見る　›</a>`;
+const id=new URLSearchParams(location.search).get('t');
+if(/^[A-Za-z0-9_-]{16,64}$/.test(String(id))){
+  const url = location.origin + '/home.html?t=' + id;
+  document.getElementById('cta').innerHTML=`<a class="btn btn-primary lg" href="/home.html?t=${id}">マイページ（ホーム）を見る　›</a>`;
   document.getElementById('mylink').value = url;
   document.getElementById('copybtn').addEventListener('click', async ()=>{
     try{ await navigator.clipboard.writeText(url); }catch{ document.getElementById('mylink').select(); document.execCommand('copy'); }

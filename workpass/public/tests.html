@@ -42,8 +42,8 @@
 <script src="/layout.js"></script>
 <script>
 document.getElementById('wiz').innerHTML = wizHeader(2);
-const id = new URLSearchParams(location.search).get('id');
-if(!/^\d+$/.test(String(id))){ location.replace('/register.html'); throw 0; }
+const id = new URLSearchParams(location.search).get('t');
+if(!/^[A-Za-z0-9_-]{16,64}$/.test(String(id))){ location.replace('/register.html'); throw 0; }
 const ICONS={
   book:['#e8eeff','#5b6ef5','<path d="M4 5a2 2 0 012-2h5v16H6a2 2 0 00-2 2zM20 5a2 2 0 00-2-2h-5v16h5a2 2 0 012 2z"/>'],
   target:['#e9f7ec','#3ea765','<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 2v3M22 12h-3"/>'],
@@ -56,7 +56,7 @@ let TESTS=[], done={};
 
 Promise.all([
   fetch('/api/tests').then(r=>r.json()),
-  id?fetch('/api/candidates/'+id).then(r=>r.json()):Promise.resolve({tests:{}})
+  id?fetch('/api/me/'+id).then(r=>r.json()):Promise.resolve({tests:{}})
 ]).then(([tests, cand])=>{
   TESTS=tests; done = (cand&&cand.tests)||{};
   render();
@@ -64,7 +64,7 @@ Promise.all([
 function render(){
   document.getElementById('grid').innerHTML = TESTS.map((t,i)=>{
     const ic=ICONS[t.icon]||ICONS.book; const isDone=!!done[t.key];
-    return `<div class="tcard ${isDone?'done':''}" onclick="location.href='/test.html?id=${id}&key=${t.key}'">
+    return `<div class="tcard ${isDone?'done':''}" onclick="location.href='/test.html?t=${id}&key=${t.key}'">
       <div class="badge-n">${i+1}</div>
       ${isDone?`<div class="doneflag">✓ 完了${done[t.key].score!=null?' '+done[t.key].score+'点':''}</div>`:''}
       <div class="tico" style="background:${ic[0]}"><svg viewBox="0 0 24 24" width="34" fill="none" stroke="${ic[1]}" stroke-width="1.7">${ic[2]}</svg></div>
@@ -75,10 +75,10 @@ function render(){
   const allDone = TESTS.length && TESTS.every(t=>done[t.key]);
   const start=document.getElementById('start');
   const next = TESTS.find(t=>!done[t.key]);
-  if(allDone){ start.textContent='希望条件の入力へ進む　›'; start.onclick=()=>location.href='/conditions.html?id='+id; }
+  if(allDone){ start.textContent='希望条件の入力へ進む　›'; start.onclick=()=>location.href='/conditions.html?t='+id; }
   else { start.textContent = next && Object.keys(done).length ? 'つづきから受験する　›' : '診断をはじめる　›';
-    start.onclick=()=>location.href='/test.html?id='+id+'&key='+(next?next.key:TESTS[0].key); }
-  document.getElementById('skip').href='/conditions.html?id='+id;
+    start.onclick=()=>location.href='/test.html?t='+id+'&key='+(next?next.key:TESTS[0].key); }
+  document.getElementById('skip').href='/conditions.html?t='+id;
 }
 </script>
 </body>

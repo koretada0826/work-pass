@@ -3,6 +3,9 @@
 const URL = (process.env.SUPABASE_URL || '').replace(/\/$/, '');
 const KEY = process.env.SUPABASE_SERVICE_KEY || '';
 const BASE = URL + '/rest/v1';
+const crypto = require('crypto');
+// 求職者ごとの推測不可能な公開トークン（本人専用リンク用）
+function genToken() { return crypto.randomBytes(18).toString('base64url'); }
 
 function headers(extra) {
   return { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json', ...(extra || {}) };
@@ -29,13 +32,19 @@ const JOB_FIELDS = ['company_name','title','employment_type','salary_min','salar
 const ORDER = { '登録済':0, '診断済':1, '面談済':2, '採用':3, '保留':3, '紹介可':3 };
 
 async function createCandidate(data, histories) {
-  const row = pick(CAND_FIELDS, data); row.status = '登録済';
+  const token = genToken();
+  const row = pick(CAND_FIELDS, data); row.status = '登録済'; row.token = token;
   const [c] = await sb('/candidates', { method:'POST', headers:{ Prefer:'return=representation' }, body: JSON.stringify(row) });
   const id = c.id;
   const rows = (Array.isArray(histories) ? histories : []).filter(w => w && (w.industry || w.job_type))
     .map(w => ({ candidate_id:id, industry:w.industry ?? null, job_type:w.job_type ?? null, years:w.years ?? null, achievement:w.achievement ?? null, resignation_reason:w.resignation_reason ?? null }));
   if (rows.length) await sb('/work_histories', { method:'POST', body: JSON.stringify(rows) });
-  return id;
+  return { id, token };
+}
+async function getCandidateIdByToken(token) {
+  if (!token) return null;
+  const rows = await sb('/candidates?select=id&token=eq.' + encodeURIComponent(token)) || [];
+  return rows[0] ? rows[0].id : null;
 }
 
 async function listCandidates() {
@@ -138,4 +147,4 @@ async function listCandidatesFull() {
   return out;
 }
 
-module.exports = { createCandidate, listCandidates, getCandidate, updateCandidate, saveTestResult, saveInterview, saveAnalysis, getStats, createJob, listJobs, getJob, listCandidatesFull };
+module.exports = { createCandidate, getCandidateIdByToken, listCandidates, getCandidate, updateCandidate, saveTestResult, saveInterview, saveAnalysis, getStats, createJob, listJobs, getJob, listCandidatesFull };
