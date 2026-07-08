@@ -90,5 +90,16 @@
     const root = document.getElementById('app');
     root.className='app';
     root.innerHTML = side + `<main><div id="top">${top}</div><div class="content" id="content">${opt.content||''}</div></main>`;
+
+    // 求職者ヘッダー：?id= があれば本人の氏名・プロフィール充足率を反映
+    if (role === 'seeker' && q.get('id')) {
+      fetch('/api/candidates/' + q.get('id')).then(r=>r.json()).then(c=>{
+        if (!c || c.error || !c.name) return;
+        const nm = root.querySelector('.userchip .nm'); if (nm) nm.textContent = c.name;
+        const keys = ['name','age','nearest_station','contact','pref_location','pref_employment','career_job','career_industry','goal_3y','future_work','qualifications','val_growth'];
+        const fill = Math.round(keys.filter(k=>c[k]!=null&&c[k]!=='').length/keys.length*100);
+        const sub = root.querySelector('.userchip .sub'); if (sub) sub.textContent = 'プロフィール充足率 ' + fill + '%';
+      }).catch(()=>{});
+    }
   };
 })();
