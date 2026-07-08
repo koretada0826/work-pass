@@ -41,18 +41,15 @@
   <div class="card" style="margin-bottom:16px">
     <div class="card-h"><span class="ct">キャリア</span></div>
     <div class="grid2">
-      <div class="field"><label class="fl">希望職種 <span class="req">必須</span></label><input name="career_job" required></div>
-      <div class="field"><label class="fl">希望業界 <span class="req">必須</span></label><input name="career_industry" required></div>
+      <div class="field"><label class="fl">希望職種 <span class="req">必須</span></label><select name="career_job" required></select></div>
+      <div class="field"><label class="fl">希望業界 <span class="req">必須</span></label><select name="career_industry" required></select></div>
     </div>
-    <div class="field"><label class="fl">3年後の目標 <span class="req">必須・200文字以上</span></label>
-      <textarea name="goal_3y" required minlength="200" data-min="200" placeholder="将来のイメージをできるだけ具体的に（200文字以上）"></textarea>
-      <div class="note charcount" data-for="goal_3y">0 / 200文字</div></div>
-    <div class="field"><label class="fl">5年後の目標 <span class="req">必須・200文字以上</span></label>
-      <textarea name="goal_5y" required minlength="200" data-min="200" placeholder="将来のイメージをできるだけ具体的に（200文字以上）"></textarea>
-      <div class="note charcount" data-for="goal_5y">0 / 200文字</div></div>
-    <div class="field"><label class="fl">将来やりたい仕事 <span class="req">必須・200文字以上</span></label>
-      <textarea name="future_work" required minlength="200" data-min="200" placeholder="やってみたい仕事や理由を具体的に（200文字以上）"></textarea>
-      <div class="note charcount" data-for="future_work">0 / 200文字</div></div>
+    <div class="field"><label class="fl">3年後の目標 <span class="req">必須</span></label>
+      <textarea name="goal_3y" required placeholder="将来のイメージを自由にお書きください"></textarea></div>
+    <div class="field"><label class="fl">5年後の目標 <span class="req">必須</span></label>
+      <textarea name="goal_5y" required placeholder="将来のイメージを自由にお書きください"></textarea></div>
+    <div class="field"><label class="fl">将来やりたい仕事 <span class="req">必須</span></label>
+      <textarea name="future_work" required placeholder="やってみたい仕事や理由を自由にお書きください"></textarea></div>
   </div>
 
   <div style="display:flex;gap:12px;justify-content:flex-end">
@@ -69,23 +66,19 @@ const opt05 = '<option value="" selected disabled>選択</option>'+Array.from({l
 const skills=[['skill_sales','営業'],['skill_hospitality','接客'],['skill_admin','事務'],['skill_pc','PCスキル'],['skill_ai','AIツール']];
 document.getElementById('skillgrid').innerHTML = skills.map(([n,l])=>`<div class="field"><label class="fl">${l} <span class="req">必須</span></label><select name="${n}" required>${opt05}</select></div>`).join('');
 
-// 200文字カウンター
-function bindCounters(){
-  document.querySelectorAll('.charcount').forEach(cc=>{
-    const ta=document.querySelector(`textarea[name="${cc.dataset.for}"]`); if(!ta||ta._bound) return; ta._bound=1;
-    const min=Number(ta.dataset.min||0);
-    const upd=()=>{ const n=ta.value.length; cc.textContent=`${n} / ${min}文字`; cc.style.color = n>=min ? 'var(--good)' : (n>0?'var(--warn)':'var(--mut2)'); };
-    ta.addEventListener('input',upd); upd();
-  });
-}
-bindCounters();
+// 業界・職種の選択肢（細かめ）
+const INDUSTRIES=['IT・ソフトウェア','SaaS・Web','通信','電機・機械メーカー','食品・消費財メーカー','自動車','化学・素材','医薬・医療機器','建設・不動産','銀行・証券','保険','商社','小売・流通','EC・通販','飲食','旅行・宿泊','運輸・物流','人材・派遣','広告・マーケティング','コンサルティング','教育','医療・介護・福祉','士業・専門サービス','エネルギー・インフラ','農林水産','公務・団体','特にこだわらない','その他'];
+const JOBTYPES=['営業（新規開拓）','営業（既存・ルート）','インサイドセールス','フィールドセールス','カスタマーサクセス','販売・接客','カスタマーサポート／コールセンター','マーケティング','広報・PR','事業企画・経営企画','商品・サービス企画','一般事務','営業事務','経理・財務','人事・労務','総務','法務','購買・調達','生産・品質管理','ITエンジニア（開発）','インフラ・ネットワーク','データ分析','デザイナー・クリエイティブ','Webディレクター','コンサルタント','研究・開発','医療・看護・介護','教育・講師','物流・倉庫','製造・技術（現場）','建築・土木','特にこだわらない','その他'];
+const optList=arr=>'<option value="" disabled selected>選択してください</option>'+arr.map(v=>`<option value="${v}">${v}</option>`).join('');
+document.querySelector('[name=career_job]').innerHTML=optList(JOBTYPES);
+document.querySelector('[name=career_industry]').innerHTML=optList(INDUSTRIES);
 
 function addHistory(){
   const div=document.createElement('div');
   div.className='card'; div.style.cssText='background:#f7f9fd;margin-bottom:12px'; div.dataset.h='1';
   div.innerHTML=`<div class="grid2">
-      <div class="field"><label class="fl">業界 <span class="req">必須</span></label><input data-f="industry" required></div>
-      <div class="field"><label class="fl">職種 <span class="req">必須</span></label><input data-f="job_type" required></div>
+      <div class="field"><label class="fl">業界 <span class="req">必須</span></label><select data-f="industry" required>${optList(INDUSTRIES)}</select></div>
+      <div class="field"><label class="fl">職種 <span class="req">必須</span></label><select data-f="job_type" required>${optList(JOBTYPES)}</select></div>
       <div class="field"><label class="fl">勤務年数 <span class="req">必須</span></label><input data-f="years" type="number" step="0.5" min="0" required></div>
       <div class="field"><label class="fl">退職理由 <span class="req">必須</span></label><input data-f="resignation_reason" required></div>
     </div>
