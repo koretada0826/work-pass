@@ -37,7 +37,7 @@ async function load(){
       <div class="kv">${kv('実績',h.achievement)}${kv('退職理由',h.resignation_reason)}</div></div>`).join('') : '<p class="muted">登録なし</p>';
 
   el.innerHTML=`
-    <div style="margin-bottom:14px"><a class="more" href="/admin.html">‹ 求職者一覧へ戻る</a></div>
+    <div style="margin-bottom:14px"><a class="more" href="/seekers.html">‹ 求職者一覧へ戻る</a></div>
     <div class="card" style="margin-bottom:18px;display:flex;align-items:center;gap:16px">
       <span class="av" style="width:64px;height:64px;border-radius:50%;background:var(--brand-l);display:inline-block"></span>
       <div style="flex:1"><div style="font-size:22px;font-weight:800">${esc(c.name)} <span class="badge ${badge[0]}">${badge[1]}</span></div>

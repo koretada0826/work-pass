@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>求職者データベース - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div id="app"></div>
+<script src="/layout.js"></script>
+<script>
+renderLayout({ role:'admin', active:'seekers', title:'求職者データベース' });
+const esc = s => (s==null||s==='')?'':String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+const stars = v => { const n=Math.round((v||0)*2)/2; let s=''; for(let i=1;i<=5;i++){ s += i<=Math.floor(n)?'★':(i-0.5===n?'★':'<span class="off">★</span>'); } return s; };
+const badge = s => { const m={'登録済':['b-reg','登録済'],'診断済':['b-sel','診断済'],'面談済':['b-ok','面談済'],'採用':['b-ok','採用'],'紹介可':['b-ok','紹介可'],'保留':['b-reg','保留']}; const x=m[s]||['b-reg',s]; return `<span class="badge ${x[0]}">${x[1]}</span>`; };
+let ALL=[];
+
+const el=document.getElementById('content');
+el.innerHTML=`
+  <div class="card" style="margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div><div style="font-weight:800;font-size:15px">登録求職者 <span id="count">-</span> 名</div><div class="note">氏名・希望職種で検索できます。行をクリックで詳細。</div></div>
+    <input id="q" placeholder="氏名・希望職種で検索" style="margin-left:auto;max-width:320px">
+    <a class="btn btn-primary sm" href="/">＋ 新規登録（求職者向け入口）</a>
+  </div>
+  <div class="card" style="padding:8px 0">
+    <table class="tbl"><thead><tr>
+      <th>氏名</th><th>年齢</th><th>希望職種</th><th>適性</th><th>希望年収</th><th>診断進捗</th><th>ステータス</th><th>登録日</th>
+    </tr></thead><tbody id="tbody"><tr><td colspan="8" style="text-align:center;padding:30px" class="muted">読み込み中…</td></tr></tbody></table>
+  </div>`;
+
+function render(rows){
+  const tb=document.getElementById('tbody');
+  if(!rows.length){ tb.innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px" class="muted">該当する求職者がいません</td></tr>'; return; }
+  tb.innerHTML=rows.map(r=>`
+    <tr style="cursor:pointer" onclick="location.href='/candidate.html?id=${r.id}'">
+      <td><div class="person"><span class="av"></span><span class="nm">${esc(r.name)||'（無名）'}</span></div></td>
+      <td>${r.age??'-'}</td>
+      <td>${esc(r.career_job)||'<span class="muted">-</span>'}</td>
+      <td>${r.apt_avg!=null?`<span class="stars">${stars(r.apt_avg/20)}</span> <b>${(r.apt_avg/20).toFixed(1)}</b>`:'<span class="muted">未診断</span>'}</td>
+      <td>${r.pref_annual_income?r.pref_annual_income+'万円':'<span class="muted">-</span>'}</td>
+      <td>${r.tests_done||0}<span class="muted">/6</span></td>
+      <td>${badge(r.status)}</td>
+      <td class="note">${(r.created_at||'').slice(0,10)}</td>
+    </tr>`).join('');
+}
+
+fetch('/api/candidates').then(r=>r.json()).then(rows=>{
+  ALL=rows; document.getElementById('count').textContent=rows.length;
+  render(rows);
+  document.getElementById('q').addEventListener('input',e=>{
+    const q=e.target.value.trim().toLowerCase();
+    render(!q?ALL:ALL.filter(r=>((r.name||'')+(r.career_job||'')).toLowerCase().includes(q)));
+  });
+}).catch(()=>{ document.getElementById('tbody').innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px" class="muted">読み込みに失敗しました</td></tr>'; });
+</script>
+</body>
+</html>

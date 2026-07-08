@@ -23,7 +23,7 @@
   const NAV = {
     admin:{ items:[
       ['dashboard','ダッシュボード','home','/admin.html'],
-      ['seekers','求職者データベース','users','/admin.html'],
+      ['seekers','求職者データベース','users','/seekers.html'],
       ['jobs','企業・求人の登録','bag','/jobs.html'],
       ['matching','AIマッチング','spark','/matching.html'],
       ['preview','適性診断の確認','doc','/preview.html'],
