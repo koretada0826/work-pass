@@ -20,7 +20,7 @@
     <div class="grid2">
       <div class="field"><label class="fl">氏名 <span class="req">必須</span></label><input name="name" required></div>
       <div class="field"><label class="fl">年齢 <span class="req">必須</span></label><input name="age" type="number" min="15" max="99" required></div>
-      <div class="field"><label class="fl">最寄駅 <span class="req">必須</span></label><input name="nearest_station" list="stationlist" placeholder="例）新宿" autocomplete="off" required><datalist id="stationlist"></datalist></div>
+      <div class="field"><label class="fl">最寄駅 <span class="req">必須</span></label><input name="nearest_station" id="stationInput" placeholder="例）しんじゅく / 新宿" autocomplete="off" required></div>
       <div class="field"><label class="fl">通勤可能範囲（分） <span class="req">必須</span></label><input name="commute_range" type="number" min="0" placeholder="例）60" required></div>
     </div>
     <div class="field"><label class="fl">連絡先（電話 / メール / LINE） <span class="req">必須</span></label><input name="contact" required></div>
@@ -88,8 +88,46 @@ const optYears='<option value="" disabled selected>選択してください</opt
 const RESIGN=['キャリアアップ・スキルアップのため','給与・待遇に不満があった','人間関係の悩み','労働環境・長時間労働','会社の将来性への不安','業務内容が合わなかった','家庭の事情（結婚・出産・育児・介護など）','引っ越し・転居','契約期間の満了','会社都合（倒産・リストラ等）','在職中（現職）','その他'];
 const optResign='<option value="" disabled selected>選択してください</option>'+RESIGN.map(v=>`<option value="${v}">${v}</option>`).join('');
 // 最寄駅の予測変換（主要駅。一覧に無くても自由入力できます）
-const STATIONS=['新宿','渋谷','池袋','東京','品川','新橋','秋葉原','上野','有楽町','浜松町','田町','恵比寿','目黒','五反田','大崎','高田馬場','中野','荻窪','吉祥寺','三鷹','立川','町田','八王子','北千住','錦糸町','押上','大手町','日本橋','銀座','六本木','赤坂','表参道','外苑前','四ツ谷','市ヶ谷','飯田橋','後楽園','水道橋','神保町','御茶ノ水','大井町','蒲田','自由が丘','二子玉川','武蔵小杉','溝の口','あざみ野','たまプラーザ','横浜','川崎','桜木町','関内','みなとみらい','戸塚','藤沢','大宮','浦和','川口','所沢','船橋','西船橋','千葉','海浜幕張','柏','松戸','大阪','梅田','難波','なんば','天王寺','新大阪','京橋','本町','淀屋橋','心斎橋','三宮','神戸','京都','四条','烏丸','名古屋','栄','金山','博多','天神','札幌','仙台','広島','岡山','熊本','鹿児島中央','那覇'];
-document.getElementById('stationlist').innerHTML = STATIONS.map(s=>`<option value="${s}駅"></option>`).join('');
+// 最寄駅の予測変換（読み仮名で検索：「しん」→新宿・新橋…／漢字入力もOK／一覧に無くても自由入力可）
+const STATIONS=[['新宿','しんじゅく'],['渋谷','しぶや'],['池袋','いけぶくろ'],['東京','とうきょう'],['品川','しながわ'],['新橋','しんばし'],['秋葉原','あきはばら'],['上野','うえの'],['有楽町','ゆうらくちょう'],['浜松町','はままつちょう'],['田町','たまち'],['恵比寿','えびす'],['目黒','めぐろ'],['五反田','ごたんだ'],['大崎','おおさき'],['高田馬場','たかだのばば'],['中野','なかの'],['荻窪','おぎくぼ'],['吉祥寺','きちじょうじ'],['三鷹','みたか'],['立川','たちかわ'],['町田','まちだ'],['八王子','はちおうじ'],['北千住','きたせんじゅ'],['錦糸町','きんしちょう'],['押上','おしあげ'],['大手町','おおてまち'],['日本橋','にほんばし'],['銀座','ぎんざ'],['六本木','ろっぽんぎ'],['赤坂','あかさか'],['表参道','おもてさんどう'],['外苑前','がいえんまえ'],['四ツ谷','よつや'],['市ヶ谷','いちがや'],['飯田橋','いいだばし'],['後楽園','こうらくえん'],['水道橋','すいどうばし'],['神保町','じんぼうちょう'],['御茶ノ水','おちゃのみず'],['大井町','おおいまち'],['蒲田','かまた'],['自由が丘','じゆうがおか'],['二子玉川','ふたこたまがわ'],['武蔵小杉','むさしこすぎ'],['溝の口','みぞのくち'],['あざみ野','あざみの'],['たまプラーザ','たまぷらーざ'],['横浜','よこはま'],['川崎','かわさき'],['桜木町','さくらぎちょう'],['関内','かんない'],['みなとみらい','みなとみらい'],['戸塚','とつか'],['藤沢','ふじさわ'],['大宮','おおみや'],['浦和','うらわ'],['川口','かわぐち'],['所沢','ところざわ'],['船橋','ふなばし'],['西船橋','にしふなばし'],['千葉','ちば'],['海浜幕張','かいひんまくはり'],['柏','かしわ'],['松戸','まつど'],['大阪','おおさか'],['梅田','うめだ'],['難波','なんば'],['天王寺','てんのうじ'],['新大阪','しんおおさか'],['京橋','きょうばし'],['本町','ほんまち'],['淀屋橋','よどやばし'],['心斎橋','しんさいばし'],['三宮','さんのみや'],['神戸','こうべ'],['京都','きょうと'],['四条','しじょう'],['烏丸','からすま'],['名古屋','なごや'],['栄','さかえ'],['金山','かなやま'],['博多','はかた'],['天神','てんじん'],['札幌','さっぽろ'],['仙台','せんだい'],['広島','ひろしま'],['岡山','おかやま'],['熊本','くまもと'],['鹿児島中央','かごしまちゅうおう'],['那覇','なは']];
+function toHira(s){ return String(s||'').replace(/[ァ-ン]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)).toLowerCase(); }
+(function attachStationAC(){
+  const input=document.getElementById('stationInput'); if(!input) return;
+  const wrap=document.createElement('div'); wrap.style.position='relative';
+  input.parentNode.insertBefore(wrap, input); wrap.appendChild(input);
+  const menu=document.createElement('div');
+  menu.style.cssText='position:absolute;left:0;right:0;top:100%;margin-top:4px;z-index:60;background:#fff;border:1px solid #dfe6f0;border-radius:10px;box-shadow:0 10px 28px rgba(20,40,80,.14);max-height:260px;overflow:auto;display:none';
+  wrap.appendChild(menu);
+  let items=[], active=-1;
+  const close=()=>{ menu.style.display='none'; active=-1; };
+  const pick=s=>{ input.value=s[0]+'駅'; close(); };
+  const hi=()=>menu.querySelectorAll('.ac-item').forEach((el,i)=>el.style.background=i===active?'#eef3ff':'');
+  function filter(){
+    const raw=input.value.replace(/駅$/,'').trim(); const q=toHira(raw);
+    if(!q){ close(); return; }
+    const starts=[], incl=[];
+    STATIONS.forEach(s=>{ const y=toHira(s[1]); if(y.startsWith(q)||s[0].startsWith(raw)) starts.push(s); else if(y.includes(q)||s[0].includes(raw)) incl.push(s); });
+    items=[...starts,...incl].slice(0,10);
+    if(!items.length){ close(); return; }
+    menu.innerHTML=items.map((s,i)=>`<div class="ac-item" data-i="${i}" style="padding:10px 12px;cursor:pointer;font-size:14px;border-bottom:1px solid #f2f5fa">${s[0]}駅 <span style="color:#93a0b2;font-size:12px">（${s[1]}）</span></div>`).join('');
+    menu.style.display='block'; active=-1;
+    menu.querySelectorAll('.ac-item').forEach(el=>{
+      el.addEventListener('mousedown',e=>{ e.preventDefault(); pick(items[+el.dataset.i]); });
+      el.addEventListener('mouseenter',()=>{ active=+el.dataset.i; hi(); });
+    });
+  }
+  input.addEventListener('input',filter);
+  input.addEventListener('focus',()=>{ if(input.value) filter(); });
+  input.addEventListener('keydown',e=>{
+    if(e.isComposing||e.keyCode===229) return; // IME変換中は無視
+    if(menu.style.display==='none') return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); active=Math.min(items.length-1,active+1); hi(); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); active=Math.max(0,active-1); hi(); }
+    else if(e.key==='Enter'&&active>=0){ e.preventDefault(); pick(items[active]); }
+    else if(e.key==='Escape'){ close(); }
+  });
+  document.addEventListener('click',e=>{ if(!wrap.contains(e.target)) close(); });
+})();
 // 希望職種・希望業界＝複数選択ドロップダウン（開いてチェック→選択はタグ表示）
 function makeMultiSelect(mountId, options, placeholder){
   const wrap=document.getElementById(mountId); wrap.className='msel';
