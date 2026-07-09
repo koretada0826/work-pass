@@ -39,14 +39,14 @@ fetch('/api/me/'+id).then(r=>r.json()).then(c=>{
     return `<div class="barrow"><div class="bl">${testLabels[k]}</div><div class="track"><i style="width:${sc}%"></i></div><div class="bv">${sc}</div></div>`;
   }).join('');
   const hist=(c.work_histories||[]).map(h=>`<div>${esc(h.industry)} / ${esc(h.job_type)}（${esc(h.years)}年）</div>`).join('')||'<span class="muted">未入力（未経験）</span>';
-  const skillStr=`営業${c.skill_sales??'-'} / 接客${c.skill_hospitality??'-'} / 事務${c.skill_admin??'-'} / PC${c.skill_pc??'-'} / AI${c.skill_ai??'-'}（各5点満点）`;
+  const skillStr=`営業${c.skill_sales??'-'} / コミュ力${c.skill_hospitality??'-'} / 事務${c.skill_admin??'-'} / PC${c.skill_pc??'-'} / AI${c.skill_ai??'-'}（各5点満点）`;
   document.getElementById('body').innerHTML=`
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">基本情報</span></div>
       <div class="kv">${kv('氏名',c.name)}${kv('年齢',c.age?c.age+'歳':null)}${kv('最寄駅',c.nearest_station)}${kv('通勤可能範囲',c.commute_range?c.commute_range+'分':null)}${kv('連絡先',c.contact)}</div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">職歴・スキル</span></div>
       <div class="kv">${kv('職歴',hist)}${kv('保有資格',c.qualifications)}${kv('スキル',skillStr)}${kv('MBTI',c.mbti)}</div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">キャリア・目標</span></div>
-      <div class="kv">${kv('希望職種',c.career_job)}${kv('希望業界',c.career_industry)}${kv('3年後の目標',c.goal_3y)}${kv('5年後の目標',c.goal_5y)}${kv('将来やりたい仕事',c.future_work)}</div></div>
+      <div class="kv">${kv('希望職種',c.career_job)}${kv('希望業界',c.career_industry)}${kv('稼ぎたい年収',c.target_income?c.target_income+'万円':null)}${kv('3年後の目標',c.goal_3y)}${kv('将来やりたい仕事',c.future_work)}</div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">診断・テスト結果（6つ）</span></div><div class="bars">${testHtml}</div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">希望条件</span></div>
       <div class="kv">${kv('希望勤務地',c.pref_location)}${kv('希望雇用形態',c.pref_employment)}${kv('勤務可能曜日',days(c.pref_days))}${kv('勤務可能時間',c.pref_time)}${kv('希望年収',c.pref_annual_income?c.pref_annual_income+'万円':null)}${kv('希望月収',c.pref_monthly_income?c.pref_monthly_income+'万円':null)}${kv('転職希望時期',c.change_timing)}</div></div>`;

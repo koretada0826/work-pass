@@ -72,7 +72,7 @@ const SELF_FIELDS = new Set([
   'pref_location','pref_days','pref_time','pref_employment',
   'pref_annual_income','pref_monthly_income','change_timing',
   'skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai','qualifications',
-  'career_job','career_industry','goal_3y','goal_5y','future_work','mbti',
+  'career_job','career_industry','goal_3y','goal_5y','future_work','mbti','target_income',
   'val_income','val_growth','val_stability','val_relationship','val_wlb'
 ]);
 function jobMapFor(jobs) {
@@ -187,6 +187,7 @@ async function handle(req, res) {
       ['skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai'].forEach(k => { if (safe[k] != null) safe[k] = clampInt(safe[k], 0, 5); });
       if (safe.pref_annual_income != null) safe.pref_annual_income = clampInt(safe.pref_annual_income, 0, 5000);
       if (safe.pref_monthly_income != null) safe.pref_monthly_income = clampInt(safe.pref_monthly_income, 0, 500);
+      if (safe.target_income != null) safe.target_income = clampInt(safe.target_income, 0, 5000);
       await db.updateCandidate(cid, safe);
       return send(res, 200, { ok: true });
     }
@@ -220,6 +221,7 @@ async function handle(req, res) {
       ['skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai'].forEach(k => { if (body[k] != null) body[k] = clampInt(body[k], 0, 5); });
       if (body.pref_annual_income != null) body.pref_annual_income = clampInt(body.pref_annual_income, 0, 5000);
       if (body.pref_monthly_income != null) body.pref_monthly_income = clampInt(body.pref_monthly_income, 0, 500);
+      if (body.target_income != null) body.target_income = clampInt(body.target_income, 0, 5000);
       const created = await db.createCandidate(body, body.work_histories); // { id, token }
       return send(res, 200, created);
     }

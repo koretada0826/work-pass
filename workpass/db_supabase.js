@@ -23,7 +23,7 @@ const CAND_FIELDS = [
   'pref_location','pref_days','pref_time','pref_employment',
   'pref_annual_income','pref_monthly_income','change_timing',
   'skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai','qualifications',
-  'career_job','career_industry','goal_3y','goal_5y','future_work','mbti',
+  'career_job','career_industry','goal_3y','goal_5y','future_work','mbti','target_income',
   'val_income','val_growth','val_stability','val_relationship','val_wlb'
 ];
 const JOB_FIELDS = ['company_name','title','employment_type','salary_min','salary_max','location','remote','description','requirements',

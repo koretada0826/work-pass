@@ -25,20 +25,20 @@ function candidateText(c) {
   const t = c.tests || {};
   const scores = Object.keys(TEST_LABEL).map(k => `${TEST_LABEL[k]}: ${t[k]?t[k].score+'点':'未受験'}`).join(' / ');
   const values = `成長${c.val_growth??'-'} 安定${c.val_stability??'-'} 人間関係${c.val_relationship??'-'} WLB${c.val_wlb??'-'}（各0-5）`;
-  const skills = `営業${c.skill_sales??'-'} 接客${c.skill_hospitality??'-'} 事務${c.skill_admin??'-'} PC${c.skill_pc??'-'} AI${c.skill_ai??'-'}（各0-5）`;
+  const skills = `営業${c.skill_sales??'-'} コミュ力${c.skill_hospitality??'-'} 事務${c.skill_admin??'-'} PC${c.skill_pc??'-'} AI${c.skill_ai??'-'}（各0-5）`;
   const hist = (c.work_histories||[]).map(h=>`・${h.industry||''}/${h.job_type||''}（${h.years||'-'}年）実績:${h.achievement||'-'} 退職理由:${h.resignation_reason||'-'}`).join('\n') || 'なし';
   const sr = c.tests?.selfreflect?.detail?.qa;
   const reflection = (sr && sr.length) ? sr.map(x=>`Q:${x.q}\nA:${x.a||'(未回答)'}`).join('\n') : 'なし';
   return `【氏名】${c.name||'-'}（${c.age||'-'}歳）
 【希望職種/業界】${c.career_job||'-'} / ${c.career_industry||'-'}
-【希望勤務地/雇用形態/年収】${c.pref_location||'-'} / ${c.pref_employment||'-'} / ${c.pref_annual_income?c.pref_annual_income+'万円':'-'}
+【希望勤務地/雇用形態/希望年収】${c.pref_location||'-'} / ${c.pref_employment||'-'} / ${c.pref_annual_income?c.pref_annual_income+'万円':'-'}
+【稼ぎたい年収（目標）】${c.target_income?c.target_income+'万円':'-'}
 【スキル】${skills}
 【保有資格】${c.qualifications||'-'}
 【職歴】\n${hist}
 【診断スコア】${scores}
 【性格タイプ】${t.personality?.detail?.top || '-'}${c.mbti ? '／MBTI: '+c.mbti : ''} ／ 価値観: ${values}
 【3年後の目標】${c.goal_3y||'-'}
-【5年後の目標】${c.goal_5y||'-'}
 【将来やりたい仕事】${c.future_work||'-'}
 【キャリア自己分析（自由回答）】
 ${reflection}`;
