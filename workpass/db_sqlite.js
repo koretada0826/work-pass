@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   created_at TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT '登録済',
   -- 基本情報
-  name TEXT, age INTEGER, nearest_station TEXT, commute_range INTEGER, contact TEXT,
+  name TEXT, age INTEGER, nearest_station TEXT, commute_range INTEGER, contact TEXT, phone TEXT, email TEXT,
   -- 勤務条件
   pref_location TEXT, pref_days TEXT, pref_time TEXT, pref_employment TEXT,
   pref_annual_income INTEGER, pref_monthly_income INTEGER, change_timing TEXT,
@@ -84,6 +84,8 @@ try { db.exec('ALTER TABLE candidates ADD COLUMN token TEXT'); } catch {}
 try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_candidates_token ON candidates(token)'); } catch {}
 try { db.exec('ALTER TABLE candidates ADD COLUMN mbti TEXT'); } catch {}
 try { db.exec('ALTER TABLE candidates ADD COLUMN target_income INTEGER'); } catch {}
+try { db.exec('ALTER TABLE candidates ADD COLUMN phone TEXT'); } catch {}
+try { db.exec('ALTER TABLE candidates ADD COLUMN email TEXT'); } catch {}
 // jobs 追加カラム（既存DBにも安全に足す）
 for (const col of ['industry TEXT','company_size TEXT','company_tags TEXT','job_category TEXT',
   'work_time TEXT','overtime TEXT','holidays TEXT','benefits TEXT',
@@ -93,7 +95,7 @@ for (const col of ['industry TEXT','company_size TEXT','company_tags TEXT','job_
 }
 
 const CAND_FIELDS = [
-  'name','age','nearest_station','commute_range','contact',
+  'name','age','nearest_station','commute_range','contact','phone','email',
   'pref_location','pref_days','pref_time','pref_employment',
   'pref_annual_income','pref_monthly_income','change_timing',
   'skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai','qualifications',

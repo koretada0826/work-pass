@@ -6,7 +6,7 @@ create table if not exists candidates (
   created_at timestamptz not null default now(),
   status text not null default '登録済',
   token text unique,  -- 求職者本人の専用リンク用（推測不可トークン）
-  name text, age int, nearest_station text, commute_range int, contact text,
+  name text, age int, nearest_station text, commute_range int, contact text, phone text, email text,
   pref_location text, pref_days text, pref_time text, pref_employment text,
   pref_annual_income int, pref_monthly_income int, change_timing text,
   skill_sales int, skill_hospitality int, skill_admin int, skill_pc int, skill_ai int, qualifications text,

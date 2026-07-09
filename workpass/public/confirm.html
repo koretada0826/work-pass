@@ -42,7 +42,7 @@ fetch('/api/me/'+id).then(r=>r.json()).then(c=>{
   const skillStr=`営業${c.skill_sales??'-'} / コミュ力${c.skill_hospitality??'-'} / 事務${c.skill_admin??'-'} / PC${c.skill_pc??'-'} / AI${c.skill_ai??'-'}（各5点満点）`;
   document.getElementById('body').innerHTML=`
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">基本情報</span></div>
-      <div class="kv">${kv('氏名',c.name)}${kv('年齢',c.age?c.age+'歳':null)}${kv('最寄駅',c.nearest_station)}${kv('通勤可能範囲',c.commute_range?c.commute_range+'分':null)}${kv('連絡先',c.contact)}</div></div>
+      <div class="kv">${kv('氏名',c.name)}${kv('年齢',c.age?c.age+'歳':null)}${kv('最寄駅',c.nearest_station)}${kv('通勤可能範囲',c.commute_range?c.commute_range+'分':null)}${kv('電話番号',c.phone)}${kv('メールアドレス',c.email)}${(c.contact&&!c.phone&&!c.email)?kv('連絡先',c.contact):''}</div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">職歴・スキル</span></div>
       <div class="kv">${kv('職歴',hist)}${kv('保有資格',c.qualifications)}${kv('スキル',skillStr)}${kv('MBTI',c.mbti)}</div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">キャリア・目標</span></div>

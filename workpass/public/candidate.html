@@ -58,7 +58,7 @@ async function load(){
     <div class="grid g-2">
       <div style="display:flex;flex-direction:column;gap:18px">
         <div class="card"><div class="card-h"><span class="ct">基本情報</span></div><div class="kv">
-          ${kv('年齢',c.age?c.age+'歳':null)}${kv('最寄駅',c.nearest_station)}${kv('通勤可能範囲',c.commute_range?c.commute_range+'分':null)}${kv('連絡先',c.contact)}${kv('MBTI',c.mbti)}</div></div>
+          ${kv('年齢',c.age?c.age+'歳':null)}${kv('最寄駅',c.nearest_station)}${kv('通勤可能範囲',c.commute_range?c.commute_range+'分':null)}${kv('電話番号',c.phone)}${kv('メールアドレス',c.email)}${(c.contact&&!c.phone&&!c.email)?kv('連絡先',c.contact):''}${kv('MBTI',c.mbti)}</div></div>
         <div class="card"><div class="card-h"><span class="ct">勤務条件</span></div><div class="kv">
           ${kv('希望勤務地',c.pref_location)}${kv('希望雇用形態',c.pref_employment)}${kv('勤務可能曜日',days(c.pref_days))}${kv('勤務可能時間',c.pref_time)}
           ${kv('希望年収',c.pref_annual_income?c.pref_annual_income+'万円':null)}${kv('希望月収',c.pref_monthly_income?c.pref_monthly_income+'万円':null)}${kv('転職希望時期',c.change_timing)}</div></div>

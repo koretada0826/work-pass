@@ -19,7 +19,7 @@ async function sb(path, opts = {}) {
 const pick = (fields, data) => { const o = {}; for (const f of fields) o[f] = data[f] ?? null; return o; };
 
 const CAND_FIELDS = [
-  'name','age','nearest_station','commute_range','contact',
+  'name','age','nearest_station','commute_range','contact','phone','email',
   'pref_location','pref_days','pref_time','pref_employment',
   'pref_annual_income','pref_monthly_income','change_timing',
   'skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai','qualifications',

@@ -68,7 +68,7 @@ const clampInt = (v, lo, hi) => { const n = Number(v); return Number.isFinite(n)
 
 // 求職者本人が変更してよい項目（status・面談評価などは含めない）
 const SELF_FIELDS = new Set([
-  'name','age','nearest_station','commute_range','contact',
+  'name','age','nearest_station','commute_range','contact','phone','email',
   'pref_location','pref_days','pref_time','pref_employment',
   'pref_annual_income','pref_monthly_income','change_timing',
   'skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai','qualifications',

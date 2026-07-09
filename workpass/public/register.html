@@ -24,7 +24,10 @@
       <div class="field"><label class="fl">通勤可能範囲 <span class="req">必須</span></label>
         <select name="commute_range" required><option value="" disabled selected>選択してください</option><option value="15">15分以内</option><option value="30">30分以内</option><option value="45">45分以内</option><option value="60">1時間以内</option><option value="90">1時間半以内</option><option value="120">2時間以内</option><option value="180">2時間以上</option></select></div>
     </div>
-    <div class="field"><label class="fl">連絡先（電話 / メール / LINE） <span class="req">必須</span></label><input name="contact" required></div>
+    <div class="grid2">
+      <div class="field"><label class="fl">電話番号 <span class="req">必須</span></label><input name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="例）090-1234-5678" required></div>
+      <div class="field"><label class="fl">メールアドレス <span class="req">必須</span></label><input name="email" type="email" inputmode="email" autocomplete="email" placeholder="例）name@example.com" required></div>
+    </div>
   </div>
 
   <div class="card" style="margin-bottom:16px">
