@@ -84,6 +84,9 @@ const HIST_JOBTYPES=JOBTYPES.filter(v=>v!=='特にこだわらない');
 // 勤続年数はプルダウン（値は数値・表示はラベル）
 const YEARS=[['0.5','1年未満'],['1','1年'],['2','2年'],['3','3年'],['4','4年'],['5','5年'],['6','6年'],['7','7年'],['8','8年'],['9','9年'],['10','10年'],['15','10年以上']];
 const optYears='<option value="" disabled selected>選択してください</option>'+YEARS.map(([v,l])=>`<option value="${v}">${l}</option>`).join('');
+// 退職理由もプルダウン（「その他」を含む）
+const RESIGN=['キャリアアップ・スキルアップのため','給与・待遇に不満があった','人間関係の悩み','労働環境・長時間労働','会社の将来性への不安','業務内容が合わなかった','家庭の事情（結婚・出産・育児・介護など）','引っ越し・転居','契約期間の満了','会社都合（倒産・リストラ等）','在職中（現職）','その他'];
+const optResign='<option value="" disabled selected>選択してください</option>'+RESIGN.map(v=>`<option value="${v}">${v}</option>`).join('');
 // 最寄駅の予測変換（主要駅。一覧に無くても自由入力できます）
 const STATIONS=['新宿','渋谷','池袋','東京','品川','新橋','秋葉原','上野','有楽町','浜松町','田町','恵比寿','目黒','五反田','大崎','高田馬場','中野','荻窪','吉祥寺','三鷹','立川','町田','八王子','北千住','錦糸町','押上','大手町','日本橋','銀座','六本木','赤坂','表参道','外苑前','四ツ谷','市ヶ谷','飯田橋','後楽園','水道橋','神保町','御茶ノ水','大井町','蒲田','自由が丘','二子玉川','武蔵小杉','溝の口','あざみ野','たまプラーザ','横浜','川崎','桜木町','関内','みなとみらい','戸塚','藤沢','大宮','浦和','川口','所沢','船橋','西船橋','千葉','海浜幕張','柏','松戸','大阪','梅田','難波','なんば','天王寺','新大阪','京橋','本町','淀屋橋','心斎橋','三宮','神戸','京都','四条','烏丸','名古屋','栄','金山','博多','天神','札幌','仙台','広島','岡山','熊本','鹿児島中央','那覇'];
 document.getElementById('stationlist').innerHTML = STATIONS.map(s=>`<option value="${s}駅"></option>`).join('');
@@ -113,7 +116,7 @@ function addHistory(){
       <div class="field"><label class="fl">業界 <span class="req">必須</span></label><select data-f="industry" required>${optList(HIST_INDUSTRIES)}</select></div>
       <div class="field"><label class="fl">職種 <span class="req">必須</span></label><select data-f="job_type" required>${optList(HIST_JOBTYPES)}</select></div>
       <div class="field"><label class="fl">勤続年数 <span class="req">必須</span></label><select data-f="years" required>${optYears}</select></div>
-      <div class="field"><label class="fl">退職理由 <span class="req">必須</span></label><input data-f="resignation_reason" required></div>
+      <div class="field"><label class="fl">退職理由 <span class="req">必須</span></label><select data-f="resignation_reason" required>${optResign}</select></div>
     </div>
     <div class="field"><label class="fl">実績（数値で書けると◎） <span class="req">必須</span></label><textarea data-f="achievement" placeholder="例）新規開拓 月10件 / 売上前年比120%" required></textarea></div>
     <button type="button" class="btn btn-ghost sm" onclick="this.parentNode.remove()">この職歴を削除</button>`;
