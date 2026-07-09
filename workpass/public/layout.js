@@ -75,7 +75,7 @@
         <div class="side-card"><div class="t">${svg(cfg.card[0])}${cfg.card[1]}</div><div class="d">${cfg.card[2]}</div></div>
         ${role==='admin' ? `<a href="#" id="wp-logout" class="note" style="display:block;padding:10px 14px;margin-top:8px">ログアウト</a>` : ''}
       </aside>`;
-    const av = uav ? `<img class="av" src="${uav}">` : `<span class="av"></span>`;
+    const av = uav ? `<img class="av" src="${uav}" alt="">` : `<span class="av"></span>`;
     const top = `
       <div class="top">
         <h1>${opt.title||''}</h1>

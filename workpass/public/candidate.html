@@ -48,7 +48,8 @@ async function load(){
           <select id="statusSel" onchange="setStatus(this.value)">
             ${['登録済','診断済','面談済','紹介可','採用','保留'].map(s=>`<option value="${s}"${c.status===s?' selected':''}>${s}</option>`).join('')}
           </select></label>
-        <a class="btn btn-outline sm" href="/tests.html?id=${id}">診断・テストを実施</a>
+        ${c.token ? `<a class="btn btn-outline sm" href="/home.html?t=${escA(c.token)}" target="_blank" rel="noopener">本人ページを開く</a>
+        <button class="btn btn-ghost sm" type="button" onclick="copyLink('${escA(c.token)}')">本人リンクをコピー</button>` : ''}
       </div>
     </div>
 
@@ -176,6 +177,11 @@ async function saveIV(){
   body.iv_comment=document.getElementById('iv_comment').value||null;
   await fetch('/api/candidates/'+id+'/interview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   toast('面談評価を保存しました'); setTimeout(load,700);
+}
+async function copyLink(tok){
+  const url=location.origin+'/home.html?t='+tok;
+  try{ await navigator.clipboard.writeText(url); toast('本人リンクをコピーしました'); }
+  catch(e){ const t=document.createElement('textarea'); t.value=url; document.body.appendChild(t); t.select(); try{document.execCommand('copy'); toast('本人リンクをコピーしました');}catch(_){ toast('コピーに失敗しました'); } t.remove(); }
 }
 async function setStatus(v){
   const sel=document.getElementById('statusSel'); if(sel) sel.disabled=true;

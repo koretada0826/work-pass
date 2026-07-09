@@ -16,13 +16,15 @@ const Q = require('./questions');
 const ai = require('./gemini');
 
 // ===== 運営（管理者）認証：共有パスワード + 署名付きCookie（サーバーレスでもステートレスに検証）=====
-function authKey() { return process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD || 'wp-dev-secret'; }
+// 署名鍵はハードコードのフォールバックを持たない（未設定なら空→署名/検証とも常に失敗＝fail-close）
+function authKey() { return process.env.AUTH_SECRET || process.env.ADMIN_PASSWORD || ''; }
 function signAdmin() {
   const exp = Date.now() + 1000 * 60 * 60 * 12; // 12時間有効
   const sig = crypto.createHmac('sha256', authKey()).update('admin.' + exp).digest('base64url');
   return 'admin.' + exp + '.' + sig;
 }
 function verifyAdmin(token) {
+  if (!authKey()) return false; // 鍵未設定なら如何なるCookieも無効
   if (!token || typeof token !== 'string') return false;
   const parts = token.split('.');
   if (parts.length !== 3 || parts[0] !== 'admin') return false;
@@ -38,9 +40,24 @@ function parseCookies(req) {
 }
 function isAdmin(req) {
   if (verifyAdmin(parseCookies(req).wp_admin)) return true;
-  // ローカル開発（ADMIN_PASSWORD未設定 かつ ループバック接続）のみ素通し。本番は必ずパスワード必須。
-  if (!process.env.ADMIN_PASSWORD) { const h = req.headers.host || ''; return h.startsWith('127.0.0.1') || h.startsWith('localhost'); }
+  // ローカル開発のみ素通し。判定は偽装可能なHostヘッダではなく実接続元アドレスで行い、本番(Vercel)では無効化。
+  if (!process.env.ADMIN_PASSWORD && !process.env.VERCEL) {
+    const ra = (req.socket && req.socket.remoteAddress) || '';
+    return ra === '127.0.0.1' || ra === '::1' || ra === '::ffff:127.0.0.1';
+  }
   return false;
+}
+// 求職者本人向け応答から、運営専用フィールド（面談評価・AIの内部所見）を除去する
+function stripAnalysis(a) {
+  if (!a || typeof a !== 'object') return a;
+  const o = { ...a }; delete o.concerns; delete o.interview_points; return o;
+}
+function publicMeView(c) {
+  if (!c || typeof c !== 'object') return c;
+  const o = { ...c };
+  ['iv_impression','iv_comm','iv_proactive','iv_personality','iv_comment','iv_evaluator','iv_date'].forEach(k => delete o[k]);
+  if (o.ai_analysis) o.ai_analysis = stripAnalysis(o.ai_analysis);
+  return o;
 }
 function timingEqual(a, b) {
   const x = Buffer.from(String(a)), y = Buffer.from(String(b));
@@ -75,11 +92,13 @@ async function respondCandidateMatches(res, c) {
     return send(res, 502, { error:'AI_ERROR', message:'求人マッチングに失敗しました。時間をおいて再度お試しください。' });
   }
 }
-async function respondAnalyze(res, cid, c) {
+async function respondAnalyze(res, cid, c, publicView) {
+  // コスト抑制：既に分析済みなら再度AIを呼ばずキャッシュを返す（本人ルートの連打による課金増を防止）
+  if (publicView && c && c.ai_analysis) return send(res, 200, { analysis: stripAnalysis(c.ai_analysis) });
   try {
     const analysis = await ai.analyzeCandidate(c);
     await db.saveAnalysis(cid, analysis);
-    return send(res, 200, { analysis });
+    return send(res, 200, { analysis: publicView ? stripAnalysis(analysis) : analysis });
   } catch (e) {
     if (e.code === 'NO_KEY') return send(res, 400, { error: 'NO_KEY', message: 'GEMINI_API_KEY が未設定です。' });
     console.error('[analyze]', e.message, e.detail || '');
@@ -99,7 +118,12 @@ function capStrings(obj, max = 5000) {
   return obj;
 }
 function send(res, code, body, type = 'application/json; charset=utf-8') {
-  res.writeHead(code, { 'Content-Type': type });
+  res.writeHead(code, {
+    'Content-Type': type,
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Referrer-Policy': 'no-referrer',
+  });
   res.end(typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
 function readBody(req) {
@@ -139,7 +163,8 @@ async function handle(req, res) {
       return send(res, 200, { ok: true });
     }
     if (p === '/api/admin/logout' && req.method === 'POST') {
-      res.setHeader('Set-Cookie', 'wp_admin=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax');
+      const secure = req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : '';
+      res.setHeader('Set-Cookie', `wp_admin=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax${secure}`);
       return send(res, 200, { ok: true });
     }
     if (p === '/api/admin/me' && req.method === 'GET') {
@@ -150,7 +175,7 @@ async function handle(req, res) {
     if ((m = p.match(/^\/api\/me\/([A-Za-z0-9_-]{16,64})$/)) && req.method === 'GET') {
       const cid = await db.getCandidateIdByToken(m[1]);
       if (!cid) return send(res, 404, { error: 'not found' });
-      return send(res, 200, await db.getCandidate(cid));
+      return send(res, 200, publicMeView(await db.getCandidate(cid))); // 面談評価など運営専用項目は除去
     }
     if ((m = p.match(/^\/api\/me\/([A-Za-z0-9_-]{16,64})$/)) && (req.method === 'PATCH' || req.method === 'POST')) {
       const cid = await db.getCandidateIdByToken(m[1]);
@@ -160,8 +185,8 @@ async function handle(req, res) {
       for (const k of Object.keys(body)) if (SELF_FIELDS.has(k)) safe[k] = body[k];
       if (safe.age != null) safe.age = clampInt(safe.age, 15, 99);
       ['skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai'].forEach(k => { if (safe[k] != null) safe[k] = clampInt(safe[k], 0, 5); });
-      if (safe.pref_annual_income != null) safe.pref_annual_income = clampInt(safe.pref_annual_income, 0, 100000);
-      if (safe.pref_monthly_income != null) safe.pref_monthly_income = clampInt(safe.pref_monthly_income, 0, 100000);
+      if (safe.pref_annual_income != null) safe.pref_annual_income = clampInt(safe.pref_annual_income, 0, 5000);
+      if (safe.pref_monthly_income != null) safe.pref_monthly_income = clampInt(safe.pref_monthly_income, 0, 500);
       await db.updateCandidate(cid, safe);
       return send(res, 200, { ok: true });
     }
@@ -182,7 +207,7 @@ async function handle(req, res) {
     if ((m = p.match(/^\/api\/me\/([A-Za-z0-9_-]{16,64})\/analyze$/)) && req.method === 'POST') {
       const cid = await db.getCandidateIdByToken(m[1]);
       if (!cid) return send(res, 404, { error: 'not found' });
-      return respondAnalyze(res, cid, await db.getCandidate(cid));
+      return respondAnalyze(res, cid, await db.getCandidate(cid), true); // 本人向け：内部所見を除去＋キャッシュ優先
     }
 
     // ===== 運営専用（要ログイン） =====
@@ -193,8 +218,8 @@ async function handle(req, res) {
       if (!body.name || typeof body.name !== 'string' || !body.name.trim()) return send(res, 400, { error: '氏名は必須です' });
       if (body.age != null) body.age = clampInt(body.age, 15, 99);
       ['skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai'].forEach(k => { if (body[k] != null) body[k] = clampInt(body[k], 0, 5); });
-      if (body.pref_annual_income != null) body.pref_annual_income = clampInt(body.pref_annual_income, 0, 100000);
-      if (body.pref_monthly_income != null) body.pref_monthly_income = clampInt(body.pref_monthly_income, 0, 100000);
+      if (body.pref_annual_income != null) body.pref_annual_income = clampInt(body.pref_annual_income, 0, 5000);
+      if (body.pref_monthly_income != null) body.pref_monthly_income = clampInt(body.pref_monthly_income, 0, 500);
       const created = await db.createCandidate(body, body.work_histories); // { id, token }
       return send(res, 200, created);
     }
@@ -206,6 +231,8 @@ async function handle(req, res) {
     if ((m = p.match(/^\/api\/candidates\/(\d+)$/)) && (req.method === 'PATCH' || req.method === 'POST')) {
       if (!isAdmin(req)) return send(res, 401, { error: 'unauthorized' });
       const body = capStrings(await readBody(req));
+      const STATUSES = ['登録済','診断済','面談済','紹介可','採用','保留'];
+      if (body.status != null && !STATUSES.includes(body.status)) return send(res, 400, { error: '不正なステータスです' });
       await db.updateCandidate(Number(m[1]), body);
       return send(res, 200, { ok: true });
     }
@@ -248,8 +275,8 @@ async function handle(req, res) {
       if (!isAdmin(req)) return send(res, 401, { error: 'unauthorized' });
       const body = capStrings(await readBody(req));
       if (!body.title || !String(body.title).trim()) return send(res, 400, { error: '求人職種は必須です' });
-      if (body.salary_min != null && body.salary_min !== '') body.salary_min = clampInt(body.salary_min, 0, 100000);
-      if (body.salary_max != null && body.salary_max !== '') body.salary_max = clampInt(body.salary_max, 0, 100000);
+      if (body.salary_min != null && body.salary_min !== '') body.salary_min = clampInt(body.salary_min, 0, 5000);
+      if (body.salary_max != null && body.salary_max !== '') body.salary_max = clampInt(body.salary_max, 0, 5000);
       const smin = Number(body.salary_min), smax = Number(body.salary_max);
       if (Number.isFinite(smin) && Number.isFinite(smax) && smin > smax) return send(res, 400, { error: '年収の下限が上限を超えています' });
       const id = await db.createJob(body);

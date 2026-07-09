@@ -15,7 +15,7 @@ const esc = s => (s==null||s==='')?'':String(s).replace(/[<>&]/g,c=>({'<':'&lt;'
 const scale=[['1','違う'],['2','やや違う'],['3','どちらとも'],['4','やや近い'],['5','近い']];
 
 const el = document.getElementById('content');
-el.innerHTML = `<div class="card" style="margin-bottom:16px"><p class="muted" style="margin:0">求職者が受験する5つの診断・テストの中身を確認できます（閲覧のみ・保存はされません）。項目をクリックで開閉します。</p></div><div id="list">読み込み中…</div>`;
+el.innerHTML = `<div class="card" style="margin-bottom:16px"><p class="muted" style="margin:0">求職者が受験する6つの診断・テストの中身を確認できます（閲覧のみ・保存はされません）。項目をクリックで開閉します。</p></div><div id="list">読み込み中…</div>`;
 
 fetch('/api/tests').then(r=>r.json()).then(async tests=>{
   const details = await Promise.all(tests.map(t=>fetch('/api/tests/'+t.key).then(r=>r.json())));

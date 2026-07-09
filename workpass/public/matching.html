@@ -67,8 +67,8 @@ async function run(){
             <div style="font-size:34px;font-weight:800;color:var(--brand);line-height:1">${num(m.score)}<small style="font-size:16px">%</small></div>
             <div class="note">マッチ度</div></div>
           <div style="flex:1;min-width:220px">
-            <div style="font-weight:800;font-size:16px">${esc(c.name||('ID:'+m.candidate_id))} <span class="note">${esc(c.career_job||'')}</span>
-              <a class="more" href="/candidate.html?id=${m.candidate_id}" style="margin-left:8px">詳細 ›</a></div>
+            <div style="font-weight:800;font-size:16px">${esc(c.name||('ID:'+cid))} <span class="note">${esc(c.career_job||'')}</span>
+              ${cid?`<a class="more" href="/candidate.html?id=${cid}" style="margin-left:8px">詳細 ›</a>`:''}</div>
             <div style="font-weight:700;color:var(--brand);margin-top:2px">${esc(m.verdict||'')}</div>
             <ul style="margin:8px 0 0;padding-left:18px">${(m.reasons||[]).map(x=>`<li>${esc(x)}</li>`).join('')}</ul>
           </div>
