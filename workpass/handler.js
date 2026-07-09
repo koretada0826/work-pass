@@ -72,7 +72,7 @@ const SELF_FIELDS = new Set([
   'pref_location','pref_days','pref_time','pref_employment',
   'pref_annual_income','pref_monthly_income','change_timing',
   'skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai','qualifications',
-  'career_job','career_industry','goal_3y','goal_5y','future_work',
+  'career_job','career_industry','goal_3y','goal_5y','future_work','mbti',
   'val_income','val_growth','val_stability','val_relationship','val_wlb'
 ]);
 function jobMapFor(jobs) {

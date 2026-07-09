@@ -44,7 +44,7 @@ fetch('/api/me/'+id).then(r=>r.json()).then(c=>{
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">基本情報</span></div>
       <div class="kv">${kv('氏名',c.name)}${kv('年齢',c.age?c.age+'歳':null)}${kv('最寄駅',c.nearest_station)}${kv('通勤可能範囲',c.commute_range?c.commute_range+'分':null)}${kv('連絡先',c.contact)}</div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">職歴・スキル</span></div>
-      <div class="kv">${kv('職歴',hist)}${kv('保有資格',c.qualifications)}${kv('スキル',skillStr)}</div></div>
+      <div class="kv">${kv('職歴',hist)}${kv('保有資格',c.qualifications)}${kv('スキル',skillStr)}${kv('MBTI',c.mbti)}</div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">キャリア・目標</span></div>
       <div class="kv">${kv('希望職種',c.career_job)}${kv('希望業界',c.career_industry)}${kv('3年後の目標',c.goal_3y)}${kv('5年後の目標',c.goal_5y)}${kv('将来やりたい仕事',c.future_work)}</div></div>
     <div class="card" style="margin-bottom:16px"><div class="card-h"><span class="ct">診断・テスト結果（6つ）</span></div><div class="bars">${testHtml}</div></div>

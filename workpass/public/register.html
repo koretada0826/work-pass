@@ -36,6 +36,12 @@
     <div class="card-h"><span class="ct">スキル</span><span class="note" style="margin-left:8px">0＝無し 〜 5＝得意</span></div>
     <div class="grid3" id="skillgrid"></div>
     <div class="field" style="margin-top:8px"><label class="fl">保有資格 <span class="req">必須</span></label><input name="qualifications" placeholder="例）普通自動車免許, 日商簿記2級, TOEIC700（無ければ「なし」）" required></div>
+    <div class="field" style="margin-top:8px"><label class="fl">MBTI（16タイプ性格診断） <span class="note" style="font-weight:400">任意・分かる方のみ</span></label>
+      <select name="mbti">
+        <option value="">選択しない／わからない</option>
+      </select>
+      <div class="note" style="margin-top:4px">ご存じない方は空欄でOKです。<a href="https://www.16personalities.com/ja" target="_blank" rel="noreferrer noopener">無料の16タイプ診断はこちら</a></div>
+    </div>
   </div>
 
   <div class="card" style="margin-bottom:16px">
@@ -63,6 +69,10 @@ document.getElementById('wiz').innerHTML = wizHeader(1);
 const opt05 = '<option value="" selected disabled>選択</option>'+Array.from({length:6},(_,i)=>`<option value="${i}">${i}</option>`).join('');
 const skills=[['skill_sales','営業'],['skill_hospitality','接客'],['skill_admin','事務'],['skill_pc','PCスキル'],['skill_ai','AIツール']];
 document.getElementById('skillgrid').innerHTML = skills.map(([n,l])=>`<div class="field"><label class="fl">${l} <span class="req">必須</span></label><select name="${n}" required>${opt05}</select></div>`).join('');
+
+// MBTI 16タイプ（任意）
+const MBTI=[['INTJ','建築家'],['INTP','論理学者'],['ENTJ','指揮官'],['ENTP','討論者'],['INFJ','提唱者'],['INFP','仲介者'],['ENFJ','主人公'],['ENFP','運動家'],['ISTJ','管理者'],['ISFJ','擁護者'],['ESTJ','幹部'],['ESFJ','領事'],['ISTP','巨匠'],['ISFP','冒険家'],['ESTP','起業家'],['ESFP','エンターテイナー']];
+document.querySelector('select[name="mbti"]').insertAdjacentHTML('beforeend', MBTI.map(([v,l])=>`<option value="${v}">${v}（${l}）</option>`).join(''));
 
 // 業界・職種の選択肢（細かめ）
 const INDUSTRIES=['IT・ソフトウェア','SaaS・Web','通信','電機・機械メーカー','食品・消費財メーカー','自動車','化学・素材','医薬・医療機器','建設・不動産','銀行・証券','保険','商社','小売・流通','EC・通販','飲食','旅行・宿泊','運輸・物流','人材・派遣','広告・マーケティング','コンサルティング','教育','医療・介護・福祉','士業・専門サービス','エネルギー・インフラ','農林水産','公務・団体','特にこだわらない','その他'];

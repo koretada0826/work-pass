@@ -10,7 +10,7 @@ create table if not exists candidates (
   pref_location text, pref_days text, pref_time text, pref_employment text,
   pref_annual_income int, pref_monthly_income int, change_timing text,
   skill_sales int, skill_hospitality int, skill_admin int, skill_pc int, skill_ai int, qualifications text,
-  career_job text, career_industry text, goal_3y text, goal_5y text, future_work text,
+  career_job text, career_industry text, goal_3y text, goal_5y text, future_work text, mbti text,
   val_income int, val_growth int, val_stability int, val_relationship int, val_wlb int,
   iv_impression int, iv_comm int, iv_proactive int, iv_personality int,
   iv_comment text, iv_evaluator text, iv_date timestamptz

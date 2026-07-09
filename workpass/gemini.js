@@ -36,7 +36,7 @@ function candidateText(c) {
 【保有資格】${c.qualifications||'-'}
 【職歴】\n${hist}
 【診断スコア】${scores}
-【性格タイプ】${t.personality?.detail?.top || '-'} ／ 価値観: ${values}
+【性格タイプ】${t.personality?.detail?.top || '-'}${c.mbti ? '／MBTI: '+c.mbti : ''} ／ 価値観: ${values}
 【3年後の目標】${c.goal_3y||'-'}
 【5年後の目標】${c.goal_5y||'-'}
 【将来やりたい仕事】${c.future_work||'-'}

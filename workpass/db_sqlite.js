@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS candidates (
   skill_sales INTEGER, skill_hospitality INTEGER, skill_admin INTEGER,
   skill_pc INTEGER, skill_ai INTEGER, qualifications TEXT,
   -- キャリア
-  career_job TEXT, career_industry TEXT, goal_3y TEXT, goal_5y TEXT, future_work TEXT,
+  career_job TEXT, career_industry TEXT, goal_3y TEXT, goal_5y TEXT, future_work TEXT, mbti TEXT,
   -- 価値観(0-5)
   val_income INTEGER, val_growth INTEGER, val_stability INTEGER,
   val_relationship INTEGER, val_wlb INTEGER,
@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS jobs (
 // candidates 追加カラム（既存DBにも安全に足す）
 try { db.exec('ALTER TABLE candidates ADD COLUMN token TEXT'); } catch {}
 try { db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_candidates_token ON candidates(token)'); } catch {}
+try { db.exec('ALTER TABLE candidates ADD COLUMN mbti TEXT'); } catch {}
 // jobs 追加カラム（既存DBにも安全に足す）
 for (const col of ['industry TEXT','company_size TEXT','company_tags TEXT','job_category TEXT',
   'work_time TEXT','overtime TEXT','holidays TEXT','benefits TEXT',
@@ -95,7 +96,7 @@ const CAND_FIELDS = [
   'pref_location','pref_days','pref_time','pref_employment',
   'pref_annual_income','pref_monthly_income','change_timing',
   'skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai','qualifications',
-  'career_job','career_industry','goal_3y','goal_5y','future_work',
+  'career_job','career_industry','goal_3y','goal_5y','future_work','mbti',
   'val_income','val_growth','val_stability','val_relationship','val_wlb'
 ];
 
