@@ -21,7 +21,8 @@
       <div class="field"><label class="fl">氏名 <span class="req">必須</span></label><input name="name" required></div>
       <div class="field"><label class="fl">年齢 <span class="req">必須</span></label><input name="age" type="number" min="15" max="99" required></div>
       <div class="field"><label class="fl">最寄駅 <span class="req">必須</span></label><input name="nearest_station" id="stationInput" placeholder="例）新宿" autocomplete="off" required></div>
-      <div class="field"><label class="fl">通勤可能範囲（分） <span class="req">必須</span></label><input name="commute_range" type="number" min="0" placeholder="例）60" required></div>
+      <div class="field"><label class="fl">通勤可能範囲 <span class="req">必須</span></label>
+        <select name="commute_range" required><option value="" disabled selected>選択してください</option><option value="15">15分以内</option><option value="30">30分以内</option><option value="45">45分以内</option><option value="60">1時間以内</option><option value="90">1時間半以内</option><option value="120">2時間以内</option><option value="180">2時間以上</option></select></div>
     </div>
     <div class="field"><label class="fl">連絡先（電話 / メール / LINE） <span class="req">必須</span></label><input name="contact" required></div>
   </div>
