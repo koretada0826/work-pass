@@ -125,6 +125,15 @@ function getCandidateIdByToken(token) {
   const r = db.prepare('SELECT id FROM candidates WHERE token=?').get(token);
   return r ? Number(r.id) : null;
 }
+// メール（大小無視）＋電話番号（数字のみ一致）で本人トークンを引く（マイページ再アクセス用）
+function findTokenByEmailPhone(email, phone) {
+  if (!email || !phone) return null;
+  const norm = s => String(s || '').replace(/[^0-9]/g, '');
+  const pn = norm(phone); if (!pn) return null;
+  const rows = db.prepare('SELECT token, phone FROM candidates WHERE lower(email)=lower(?) AND token IS NOT NULL ORDER BY id DESC').all(String(email).trim());
+  const hit = rows.find(r => norm(r.phone) === pn);
+  return hit ? hit.token : null;
+}
 
 function listCandidates() {
   const rows = db.prepare(`
@@ -248,4 +257,4 @@ function getStats() {
   return { total, withAptitude:withApt, distributionTotal:counts.reduce((a,b)=>a+b,0), distribution };
 }
 
-module.exports = { createCandidate, getCandidateIdByToken, listCandidates, getCandidate, updateCandidate, saveTestResult, saveInterview, saveAnalysis, getStats, createJob, listJobs, getJob, listCandidatesFull };
+module.exports = { createCandidate, getCandidateIdByToken, findTokenByEmailPhone, listCandidates, getCandidate, updateCandidate, saveTestResult, saveInterview, saveAnalysis, getStats, createJob, listJobs, getJob, listCandidatesFull };

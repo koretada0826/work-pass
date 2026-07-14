@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>マイページを開く - WORK PASS</title>
+<link rel="stylesheet" href="/ui.css">
+</head>
+<body>
+<div class="obhead"><div class="logo">WORK <b>PASS</b></div><div class="tag">人ではなく、相性で採用する。</div></div>
+<div class="obwrap" style="max-width:440px">
+  <div class="card" style="padding:32px 26px">
+    <h1 style="font-size:22px;margin:0 0 4px">マイページを開く</h1>
+    <p class="note" style="margin:0 0 20px">ご登録時の<b>メールアドレス</b>と<b>電話番号</b>を入力すると、あなたの診断結果ページ（マイページ）を開けます。</p>
+    <form id="f">
+      <div class="field"><label class="fl">メールアドレス</label>
+        <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="例）name@example.com" required></div>
+      <div class="field" style="margin-top:10px"><label class="fl">電話番号</label>
+        <input id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="例）090-1234-5678" required></div>
+      <div id="err" class="note" style="color:#dc2626;min-height:18px;margin:8px 0 0"></div>
+      <button class="btn btn-primary block lg" style="margin-top:12px" id="btn" type="submit">マイページを開く　›</button>
+    </form>
+    <p style="text-align:center;margin-top:16px"><a href="/" class="note">はじめての方はこちら（新規登録）</a></p>
+  </div>
+</div>
+<script>
+const f=document.getElementById('f'), btn=document.getElementById('btn'), err=document.getElementById('err');
+f.addEventListener('submit', async (e)=>{
+  e.preventDefault(); err.textContent=''; btn.disabled=true; btn.textContent='確認中…';
+  try{
+    const r=await fetch('/api/me/lookup',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:document.getElementById('email').value, phone:document.getElementById('phone').value})});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok && j.token){ location.replace('/home.html?t='+encodeURIComponent(j.token)); return; }
+    err.textContent = j.error || 'ご登録情報が見つかりませんでした。';
+  }catch(_){ err.textContent='通信エラーが発生しました。時間をおいて再度お試しください。'; }
+  btn.disabled=false; btn.textContent='マイページを開く　›';
+});
+</script>
+</body>
+</html>

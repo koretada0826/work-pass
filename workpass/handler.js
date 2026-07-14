@@ -171,6 +171,13 @@ async function handle(req, res) {
       return isAdmin(req) ? send(res, 200, { ok: true }) : send(res, 401, { error: 'unauthorized' });
     }
 
+    // 本人がメール＋電話番号でマイページを開き直す（リンク再取得）
+    if (p === '/api/me/lookup' && req.method === 'POST') {
+      const body = capStrings(await readBody(req));
+      const token = await db.findTokenByEmailPhone(body.email, body.phone);
+      if (!token) return send(res, 404, { error: 'ご登録情報が見つかりませんでした。メールアドレスと電話番号をご確認ください。' });
+      return send(res, 200, { token });
+    }
     // ===== 求職者本人（推測不可トークン）用エンドポイント =====
     if ((m = p.match(/^\/api\/me\/([A-Za-z0-9_-]{16,64})$/)) && req.method === 'GET') {
       const cid = await db.getCandidateIdByToken(m[1]);

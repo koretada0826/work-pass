@@ -46,6 +46,16 @@ async function getCandidateIdByToken(token) {
   const rows = await sb('/candidates?select=id&token=eq.' + encodeURIComponent(token)) || [];
   return rows[0] ? rows[0].id : null;
 }
+// メール（大小無視）＋電話番号（数字のみ一致）で本人トークンを引く（マイページ再アクセス用）
+async function findTokenByEmailPhone(email, phone) {
+  if (!email || !phone) return null;
+  const norm = s => String(s || '').replace(/[^0-9]/g, '');
+  const pn = norm(phone); if (!pn) return null;
+  const em = String(email).trim().toLowerCase();
+  const rows = await sb('/candidates?select=token,email,phone') || []; // 1クエリで取得しJSで厳密照合（ilikeのワイルドカード誤爆を回避）
+  const hit = rows.find(r => r.token && String(r.email || '').trim().toLowerCase() === em && norm(r.phone) === pn);
+  return hit ? hit.token : null;
+}
 
 async function listCandidates() {
   const cands = await sb('/candidates?select=id,created_at,status,name,age,nearest_station,contact,career_job,pref_annual_income,iv_date&order=id.desc');
@@ -147,4 +157,4 @@ async function listCandidatesFull() {
   return out;
 }
 
-module.exports = { createCandidate, getCandidateIdByToken, listCandidates, getCandidate, updateCandidate, saveTestResult, saveInterview, saveAnalysis, getStats, createJob, listJobs, getJob, listCandidatesFull };
+module.exports = { createCandidate, getCandidateIdByToken, findTokenByEmailPhone, listCandidates, getCandidate, updateCandidate, saveTestResult, saveInterview, saveAnalysis, getStats, createJob, listJobs, getJob, listCandidatesFull };
