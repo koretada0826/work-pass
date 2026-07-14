@@ -28,9 +28,9 @@
           </div></div>
         <div class="field"><label class="fl">転職希望時期 <span class="req">必須</span></label>
           <select name="change_timing" required><option value="">選択</option><option>すぐにでも</option><option>3ヶ月以内</option><option>半年以内</option><option>1年以内</option><option>未定</option></select></div>
-        <div class="field"><label class="fl">希望年収 <span class="req">必須</span></label><select name="pref_annual_income" id="pref_annual_income" required></select></div>
+        <div class="field"><label class="fl">希望時給（円） <span class="req">必須</span></label><select name="pref_annual_income" id="pref_annual_income" required></select></div>
       </div>
-      <div class="field" style="max-width:220px"><label class="fl">希望月収 <span class="note" style="font-weight:400">任意</span></label><select name="pref_monthly_income" id="pref_monthly_income"></select></div>
+      <div class="field" style="max-width:220px"><label class="fl">最低時給（円） <span class="req">必須</span></label><select name="pref_monthly_income" id="pref_monthly_income" required></select></div>
     </div>
     <div style="display:flex;gap:12px;justify-content:space-between">
       <a class="btn btn-ghost" id="back">← 戻る</a>
@@ -62,12 +62,11 @@ document.getElementById('days').innerHTML=['月','火','水','木','金','土','
   document.getElementById('t_start').value='09:00';
   document.getElementById('t_end').value='18:00';
 })();
-// 希望年収・月収は100万/5万刻みのプルダウン（素早く選べる）
+// 希望時給・最低時給のプルダウン（円・素早く選べる）
 (function(){
-  const A=[200,300,400,500,600,700,800,900,1000,1200,1500];
-  document.getElementById('pref_annual_income').innerHTML='<option value="" selected>選択してください</option>'+A.map(v=>`<option value="${v}">${v}万円${v===1500?'以上':''}</option>`).join('');
-  const M=[15,18,20,22,25,28,30,35,40,45,50];
-  document.getElementById('pref_monthly_income').innerHTML='<option value="" selected>選択（任意）</option>'+M.map(v=>`<option value="${v}">${v}万円${v===50?'以上':''}</option>`).join('');
+  const H=[900,1000,1100,1200,1300,1400,1500,1600,1800,2000,2500,3000];
+  document.getElementById('pref_annual_income').innerHTML='<option value="" selected>選択してください</option>'+H.map(v=>`<option value="${v}">${v.toLocaleString()}円${v===3000?'以上':''}</option>`).join('');
+  document.getElementById('pref_monthly_income').innerHTML='<option value="" selected>選択してください</option>'+H.map(v=>`<option value="${v}">${v.toLocaleString()}円${v===3000?'以上':''}</option>`).join('');
 })();
 document.getElementById('form').addEventListener('submit', async (e)=>{
   e.preventDefault();

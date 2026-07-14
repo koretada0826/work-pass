@@ -27,10 +27,11 @@ function build(cand){
     fill = Math.round(f/keys.length*100);
   }
 
-  // 適性サマリー（実データ＝各診断のスコア。未受験は0＋案内）
+  // 適性サマリー：点数は一般常識・ビジネスマナーのみ。他の診断は「受験済み」表示（点数化しない方針）
   const t = cand?.tests || {};
   const hasTests = Object.keys(t).length>0;
-  const aptData = [['一般常識',t.general?.score],['営業適性',t.sales?.score],['コミュニケーション',t.communication?.score],['性格傾向',t.personality?.score],['ビジネスマナー',t.manners?.score]].map(([l,v])=>[l, v??0]);
+  const scoredData = [['一般常識テスト',t.general?.score],['ビジネスマナー診断',t.manners?.score]].filter(x=>x[1]!=null);
+  const doneOther = [['営業適性',t.sales],['コミュニケーション',t.communication],['性格傾向',t.personality],['キャリア自己分析',t.selfreflect]].filter(x=>x[1]).map(x=>x[0]);
   const apt = hasTests;
 
   const welcome = `
@@ -64,9 +65,10 @@ function build(cand){
   <div class="card">
     <div class="card-h"><span class="hi">📊</span><span class="ct">あなたの適性サマリー</span>${apt?'':'<span class="demoflag">診断がまだです</span>'}</div>
     <div class="bars">
-      ${aptData.map(([l,v])=>`<div class="barrow" style="grid-template-columns:120px 1fr 34px"><div class="bl">${l}</div><div class="track"><i style="width:${v}%"></i></div><div class="bv">${v}</div></div>`).join('')}
+      ${scoredData.map(([l,v])=>`<div class="barrow" style="grid-template-columns:130px 1fr 34px"><div class="bl">${l}</div><div class="track"><i style="width:${v}%"></i></div><div class="bv">${v}</div></div>`).join('')}
     </div>
-    ${apt?'':'<p class="note" style="margin-top:8px">診断・テストを受けると、ここにあなたのスコアが表示されます。</p>'}
+    ${doneOther.length?`<div style="margin-top:10px"><span class="note">受験済みの診断：</span><div style="margin-top:4px">${doneOther.map(l=>`<span class="chip">${l} ✓</span>`).join(' ')}</div></div>`:''}
+    ${apt?'':'<p class="note" style="margin-top:8px">診断・テストを受けると、ここに結果が表示されます。</p>'}
     <button class="btn btn-outline block" style="margin-top:16px" onclick="document.getElementById('aiseeker')?.scrollIntoView({behavior:'smooth',block:'start'})">AIキャリア診断を見る　›</button>
   </div>`;
 

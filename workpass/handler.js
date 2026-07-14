@@ -185,8 +185,8 @@ async function handle(req, res) {
       for (const k of Object.keys(body)) if (SELF_FIELDS.has(k)) safe[k] = body[k];
       if (safe.age != null) safe.age = clampInt(safe.age, 15, 99);
       ['skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai'].forEach(k => { if (safe[k] != null) safe[k] = clampInt(safe[k], 0, 5); });
-      if (safe.pref_annual_income != null) safe.pref_annual_income = clampInt(safe.pref_annual_income, 0, 5000);
-      if (safe.pref_monthly_income != null) safe.pref_monthly_income = clampInt(safe.pref_monthly_income, 0, 500);
+      if (safe.pref_annual_income != null) safe.pref_annual_income = clampInt(safe.pref_annual_income, 0, 20000);
+      if (safe.pref_monthly_income != null) safe.pref_monthly_income = clampInt(safe.pref_monthly_income, 0, 20000);
       if (safe.target_income != null) safe.target_income = clampInt(safe.target_income, 0, 5000);
       await db.updateCandidate(cid, safe);
       return send(res, 200, { ok: true });
@@ -219,8 +219,8 @@ async function handle(req, res) {
       if (!body.name || typeof body.name !== 'string' || !body.name.trim()) return send(res, 400, { error: '氏名は必須です' });
       if (body.age != null) body.age = clampInt(body.age, 15, 99);
       ['skill_sales','skill_hospitality','skill_admin','skill_pc','skill_ai'].forEach(k => { if (body[k] != null) body[k] = clampInt(body[k], 0, 5); });
-      if (body.pref_annual_income != null) body.pref_annual_income = clampInt(body.pref_annual_income, 0, 5000);
-      if (body.pref_monthly_income != null) body.pref_monthly_income = clampInt(body.pref_monthly_income, 0, 500);
+      if (body.pref_annual_income != null) body.pref_annual_income = clampInt(body.pref_annual_income, 0, 20000);
+      if (body.pref_monthly_income != null) body.pref_monthly_income = clampInt(body.pref_monthly_income, 0, 20000);
       if (body.target_income != null) body.target_income = clampInt(body.target_income, 0, 5000);
       const created = await db.createCandidate(body, body.work_histories); // { id, token }
       return send(res, 200, created);

@@ -106,10 +106,8 @@ function scoreTest(key, answers) {
     return { score, detail:{ correct, total:t.questions.length } };
   }
   if (t.type==='likert') {
-    const n=t.items.length; let sum=0;
-    for (let i=0;i<n;i++){ let v=Number(answers[i]); if(!(v>=1&&v<=5)) v=3; sum+=v; }
-    const score=Math.round(((sum-n)/(n*4))*100);
-    return { score, detail:{ dim:t.dim } };
+    // 点数化しない診断（営業適性・コミュニケーション）。回答は保存するがスコアは出さない
+    return { score:null, detail:{ dim:t.dim } };
   }
   if (t.type==='likert-multi') {
     const dimScores={}; const values={}; let total=0;
@@ -120,7 +118,8 @@ function scoreTest(key, answers) {
       dimScores[d.label]=s; values[d.key]=Math.round(s/20); total+=s;
     });
     const top=Object.entries(dimScores).sort((a,b)=>b[1]-a[1])[0];
-    return { score:Math.round(total/t.dims.length), detail:{ dims:dimScores, top:top?top[0]:null }, values };
+    // 性格診断は点数化しない（価値観val_*と性格タイプは活かす）
+    return { score:null, detail:{ dims:dimScores, top:top?top[0]:null }, values };
   }
   if (t.type==='freetext') {
     const qa=t.questions.map((q,i)=>({ q:q.q, a:String((answers&&answers[i])||'').trim() }));

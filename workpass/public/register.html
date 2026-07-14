@@ -37,7 +37,7 @@
   </div>
 
   <div class="card" style="margin-bottom:16px">
-    <div class="card-h"><span class="ct">スキル</span><span class="note" style="margin-left:8px">0＝無し 〜 5＝得意</span></div>
+    <div class="card-h"><span class="ct">スキル（自己評価）</span><span class="note" style="margin-left:8px">0＝無し 〜 5＝得意</span></div>
     <div class="grid3" id="skillgrid"></div>
     <div class="field" style="margin-top:8px"><label class="fl">保有資格 <span class="req">必須</span></label><input name="qualifications" placeholder="例）普通自動車免許, 日商簿記2級, TOEIC700（無ければ「なし」）" required></div>
     <div class="field" style="margin-top:8px"><label class="fl">MBTI（16タイプ性格診断） <span class="note" style="font-weight:400">任意・分かる方のみ</span></label>
@@ -52,8 +52,6 @@
     <div class="card-h"><span class="ct">キャリア</span></div>
     <div class="field"><label class="fl">希望職種 <span class="req">必須</span> <span class="note" style="font-weight:400">（複数選択できます）</span></label><div class="days" id="cj_chips"></div></div>
     <div class="field"><label class="fl">希望業界 <span class="req">必須</span> <span class="note" style="font-weight:400">（複数選択できます）</span></label><div class="days" id="ci_chips"></div></div>
-    <div class="field"><label class="fl">稼ぎたい年収（万円） <span class="req">必須</span></label>
-      <input name="target_income" type="number" min="0" max="5000" step="100" placeholder="例）500" required></div>
     <div class="field"><label class="fl">3年後の目標 <span class="req">必須</span></label>
       <textarea name="goal_3y" required placeholder="将来のイメージを自由にお書きください"></textarea></div>
     <div class="field"><label class="fl">将来やりたい仕事 <span class="req">必須</span></label>
@@ -71,7 +69,7 @@
 <script>
 document.getElementById('wiz').innerHTML = wizHeader(1);
 const opt05 = '<option value="" selected disabled>選択</option>'+['0（なし）','1','2','3','4','5（得意）'].map((l,i)=>`<option value="${i}">${l}</option>`).join('');
-const skills=[['skill_sales','営業'],['skill_hospitality','コミュニケーション能力'],['skill_admin','事務'],['skill_pc','PCスキル'],['skill_ai','AIツール']];
+const skills=[['skill_sales','営業'],['skill_pc','PCスキル'],['skill_ai','AIツール']];
 document.getElementById('skillgrid').innerHTML = skills.map(([n,l])=>`<div class="field"><label class="fl">${l} <span class="req">必須</span></label><select name="${n}" required>${opt05}</select></div>`).join('');
 
 // MBTI 16タイプ（任意）
@@ -155,8 +153,8 @@ function addHistory(){
   const div=document.createElement('div');
   div.className='card'; div.style.cssText='background:#f7f9fd;margin-bottom:12px'; div.dataset.h='1';
   div.innerHTML=`<div class="grid2">
-      <div class="field"><label class="fl">業界 <span class="req">必須</span></label><select data-f="industry" required>${optList(HIST_INDUSTRIES)}</select></div>
       <div class="field"><label class="fl">職種 <span class="req">必須</span></label><select data-f="job_type" required>${optList(HIST_JOBTYPES)}</select></div>
+      <div class="field"><label class="fl">業界 <span class="req">必須</span></label><select data-f="industry" required>${optList(HIST_INDUSTRIES)}</select></div>
       <div class="field"><label class="fl">勤続年数 <span class="req">必須</span></label><select data-f="years" required>${optYears}</select></div>
       <div class="field"><label class="fl">退職理由 <span class="req">必須</span></label><select data-f="resignation_reason" required>${optResign}</select></div>
     </div>
